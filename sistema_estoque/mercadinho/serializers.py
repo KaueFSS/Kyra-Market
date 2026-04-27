@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa
-
+from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa, ItemVenda, Venda, Cliente
 
 class ProdutoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,4 +49,28 @@ class DespesaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Despesa
+        fields = '__all__'
+
+class ItemVendaSerializer(serializers.ModelSerializer):
+    produto_nome = serializers.CharField(source='produto.nome', read_only=True)
+
+    class Meta:
+        model = ItemVenda
+        fields = '__all__'
+
+
+class VendaSerializer(serializers.ModelSerializer):   
+    itens = ItemVendaSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Venda
+        fields = '__all__'
+
+    def get_total(self, obj):
+        return sum(item.subtotal for item in obj.itens.all())
+
+class ClienteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cliente
         fields = '__all__'
