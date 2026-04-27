@@ -3,12 +3,12 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa
+from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa, ItemVenda, Venda, Cliente
 from .serializers import (
     ProdutoSerializer, EstoqueSerializer,
     FornecedorSerializer, FuncionarioSerializer,
     CompraFornecedorSerializer, ItemCompraSerializer,
-    DespesaSerializer,
+    DespesaSerializer, ItemVendaSerializer, VendaSerializer, ClienteSerializer
 )
 
 
@@ -88,4 +88,54 @@ class DespesaViewSet(viewsets.ModelViewSet):
             'total': queryset.count(),
             'resultados': serializer.data
         })
+class ItemVendaViewSet(viewsets.ModelViewSet): # permite fazer os metodos do CRUD
+    queryset = ItemVenda.objects.select_related('produto', 'venda').all() # procura no banco de dados o (produto e venda (FK)) ao mesmo tempo evitando várias queries
+# uma query pega os dados do banco de dados, se utlilizasse só o .all ele faria uma query para cada item, e suas Foreigns Keys(produto e venda) o que não seria vantajoso pois a API ficaria lenta
+    serializer_class = ItemVendaSerializer # transforma esses dados em JSON
+
+
+class VendaViewSet(viewsets.ModelViewSet):
+    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens').all() # o .prefetch_related('itens') faz uma query só para pegar todos os itens(ItemVenda) da venda sem precisar fazer várias queries
+    serializer_class = VendaSerializer
+
+
+class ClienteViewSet(viewsets.ModelViewSet):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+#Endpoint com filtro de fiado
+    def get_queryset(self): # altera os dados antes de fazer a query
+        queryset = super().get_queryset() # pega o queryset padrão
+
+        possui_fiado = self.request.query_params.get('possui_fiado') #pega o valor da url
+
+        if possui_fiado is not None: # so funciona se buscar no filtro (/clientes/?possui_fiado=True)
+            queryset = queryset.filter(possui_fiado=possui_fiado == 'True')  # trasnforma a resposta em booleano
+
+        return queryset
+#Endpoint com histórico de compras    
+    @action(detail=True, methods=['get']) #Cria um novo CRUD (histórico)
+    def historico(self, request, pk=None):
+        cliente = self.get_object() # pega o cliente por id
+        vendas = cliente.vendas.all() # pega todas as vendas do cliente
+
+        data_inicio = request.query_params.get('data_inicio')
+        data_fim = request.query_params.get('data_fim')
+
+        if data_inicio:
+            vendas = vendas.filter(data_venda__gte=data_inicio) # gte é maior ou igual
+
+        if data_fim:
+            vendas = vendas.filter(data_venda__lte=data_fim) # lte é menor ou igual
+
+
+        serializer = VendaSerializer(vendas, many=True) #many=true porque são várias vendas(uma lista)
+        return Response(serializer.data)
+
+
+
+
+
+
+
         
