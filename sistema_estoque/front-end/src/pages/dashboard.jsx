@@ -49,4 +49,25 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+function DashboardMercadinho() {
+  return (
+    <div style={{ fontFamily: 'sans-serif' , fontSize: '32px'}}>
+      
+      <h2 style={{paddingBottom: '10px',paddingTop: '20px'}} >
+      <h2>Visão geral do sistema</h2>
+      </h2>
+      
+      {/* O iframe cria uma 'janela' no seu site que exibe o link do Metabase */}
+      <iframe
+        src="http://localhost:3000/public/dashboard/9e121adb-41a6-4aef-acfe-26dafdabceca"
+        frameBorder="0" 
+        width="100%"
+        height="1000"
+        allowTransparency="true"
+      ></iframe>
+
+    </div>
+  );
+}
+
+export default DashboardMercadinho;
