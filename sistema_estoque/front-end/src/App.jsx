@@ -1,0 +1,36 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/home";
+import Dashboard from "./pages/dashboard";
+import Vendas from "./pages/vendas";
+import Clientes from "./pages/clientes";
+import Relatorios from "./pages/relatorio";
+import Produtos from "./pages/produtos";
+import Estoques from "./pages/estoques";
+import Fornecedores from "./pages/fornecedores";
+import Funcionarios from "./pages/funcionarios";
+import Compras from "./pages/compras";
+import ItensCompra from "./pages/itensCompra";
+import Despesas from "./pages/despesas";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/vendas" element={<Vendas />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/produtos" element={<Produtos />} />
+        <Route path="/estoques" element={<Estoques />} />
+        <Route path="/fornecedores" element={<Fornecedores />} />
+        <Route path="/funcionarios" element={<Funcionarios />} />
+        <Route path="/compras" element={<Compras />} />
+        <Route path="/itens-compra" element={<ItensCompra />} />
+        <Route path="/despesas" element={<Despesas />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
