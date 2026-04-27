@@ -68,7 +68,11 @@ class VendaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_total(self, obj):
-        return sum(item.subtotal for item in obj.itens.all())
+        total = 0
+        
+        for item in obj.itens.all():
+            total += item.subtotal
+        return total
 
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
