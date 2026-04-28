@@ -32,6 +32,8 @@ function Home() {
         <Link to="/relatorios" style={linkStyle}>Relatórios</Link>
         <Link to="/itens-venda" style={linkStyle}>Itens de Venda</Link>
         <Link to="/clientes/novo" style={linkStyle}>Cadastrar Cliente</Link>
+        <Link to="/funcionarios/novo" style={linkStyle}>Cadastrar Funcionário</Link>
+        <Link to="/despesas/novo" style={linkStyle}>Cadastrar Despesa</Link>
       </div>
     </div>
   );

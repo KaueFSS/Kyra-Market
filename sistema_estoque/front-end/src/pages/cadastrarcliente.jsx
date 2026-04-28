@@ -60,9 +60,7 @@ function CadastrarCliente() {
         saldo_fiado: "0.00",
       });
     } catch (error) {
-      console.error("Erro ao cadastrar cliente:", error);
-      console.error("Resposta da API:", error.response?.data);
-
+      console.error(error.response?.data);
       setErro("Erro ao cadastrar cliente. Verifique os campos.");
       setMensagem("");
     }

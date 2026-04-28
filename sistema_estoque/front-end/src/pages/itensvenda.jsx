@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import Paginacao from "../components/Paginacao";
 
 function ItensVenda() {
   const [itensVenda, setItensVenda] = useState([]);
