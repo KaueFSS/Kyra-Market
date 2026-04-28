@@ -12,6 +12,7 @@ import Compras from "./pages/compras";
 import ItensCompra from "./pages/itensCompra";
 import Despesas from "./pages/despesas";
 import ItensVenda from "./pages/itensvenda";
+import CadastrarCliente from "./pages/cadastrarcliente";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/itens-compra" element={<ItensCompra />} />
         <Route path="/despesas" element={<Despesas />} />
         <Route path="/itens-venda" element={<ItensVenda />} />
+        <Route path="/clientes/novo" element={<CadastrarCliente/>} />
       </Routes>
     </BrowserRouter>
   );

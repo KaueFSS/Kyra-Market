@@ -31,6 +31,7 @@ function Home() {
         <Link to="/vendas" style={linkStyle}>Vendas</Link>
         <Link to="/relatorios" style={linkStyle}>Relatórios</Link>
         <Link to="/itens-venda" style={linkStyle}>Itens de Venda</Link>
+        <Link to="/clientes/novo" style={linkStyle}>Cadastrar Cliente</Link>
       </div>
     </div>
   );
