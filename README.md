@@ -11,13 +11,13 @@
 
 > Execute os comandos diretamente da pasta `sistema_estoque` (cd sistema_estoque)
 
-### ▶️ Iniciar Servidor
+### ▶️ Instalação do Django
 
 ```bash
 pip install django
 ```
 
-### ▶️ Instalação do Django
+### ▶️ Iniciar servidor
 
 ```bash
 cd sistema_estoque
@@ -29,7 +29,7 @@ python manage.py runserver
 python manage.py makemigrations
 ```
 
-### ▶️ Migra para o brando de dados
+### ▶️ Migra para o banco de dados
 ```bash
 python manage.py migrate
 ```
