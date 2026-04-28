@@ -15,7 +15,7 @@ function Home() {
 
   return (
     <div style={{ color: "white", padding: "30px" }}>
-      <h1>Home</h1>
+      <h1>Home</h1> 
       <p>Navegação básica do sistema</p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
@@ -30,6 +30,7 @@ function Home() {
         <Link to="/clientes" style={linkStyle}>Clientes</Link>
         <Link to="/vendas" style={linkStyle}>Vendas</Link>
         <Link to="/relatorios" style={linkStyle}>Relatórios</Link>
+        <Link to="/itens-venda" style={linkStyle}>Itens de Venda</Link>
       </div>
     </div>
   );

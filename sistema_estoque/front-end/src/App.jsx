@@ -11,6 +11,7 @@ import Funcionarios from "./pages/funcionarios";
 import Compras from "./pages/compras";
 import ItensCompra from "./pages/itensCompra";
 import Despesas from "./pages/despesas";
+import ItensVenda from "./pages/itensvenda";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/compras" element={<Compras />} />
         <Route path="/itens-compra" element={<ItensCompra />} />
         <Route path="/despesas" element={<Despesas />} />
+        <Route path="/itens-venda" element={<ItensVenda />} />
       </Routes>
     </BrowserRouter>
   );
