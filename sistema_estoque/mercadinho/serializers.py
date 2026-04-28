@@ -62,9 +62,9 @@ class ItemVendaSerializer(serializers.ModelSerializer):
 
 
 class VendaSerializer(serializers.ModelSerializer):   
-    itens = ItemVendaSerializer(many=True, read_only=True) # traz todos os itens da venda (ItemVenda) como uma lista
+    itens_nomes = serializers.SerializerMethodField() # cria um campo que não existe no banco para nome dos itens
 
-    total = serializers.SerializerMethodField() # cria um campo que não existe no banco
+    total = serializers.SerializerMethodField() # cria um campo que não existe no banco para o total da venda
 
     class Meta:
         model = Venda
@@ -76,6 +76,9 @@ class VendaSerializer(serializers.ModelSerializer):
         for item in obj.itens.all(): # pega todos os itens da venda e soma os subtotais
             total += item.subtotal
         return total
+    
+    def get_itens_nomes(self, obj):
+        return [item.produto.nome for item in obj.itens.all()]
 
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
