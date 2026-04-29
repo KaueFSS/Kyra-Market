@@ -4,7 +4,7 @@ import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado, buscarDados } from "../services/crudService";
+import { criarDado, listarDados } from "../services/crudService";
 
 const estadoInicial = {
   fornecedor: "",
@@ -26,8 +26,8 @@ function CadastrarCompra() {
   useEffect(() => {
     async function carregarDados() {
       try {
-        const forn = await buscarDados("/fornecedores/");
-        const func = await buscarDados("/funcionarios/");
+        const forn = await listarDados("/fornecedores/");
+        const func = await listarDados("/funcionarios/");
 
         setFornecedores(forn.results || forn);
         setFuncionarios(func.results || func);

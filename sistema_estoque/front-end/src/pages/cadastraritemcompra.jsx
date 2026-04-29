@@ -4,7 +4,7 @@ import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado, buscarDados } from "../services/crudService";
+import { criarDado, listarDados } from "../services/crudService";
 
 const estadoInicial = {
   compra: "",
@@ -23,8 +23,8 @@ function CadastrarItemCompra() {
   useEffect(() => {
     async function carregarDados() {
       try {
-        const comp = await buscarDados("/compras/");
-        const prod = await buscarDados("/produtos/");
+        const comp = await listarDados("/compras/");
+        const prod = await listarDados("/produtos/");
 
         setCompras(comp.results || comp);
         setProdutos(prod.results || prod);
