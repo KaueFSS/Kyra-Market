@@ -19,6 +19,8 @@ import CadastrarFornecedor from "./pages/cadastrarfornecedor";
 import CadastrarCompra from "./pages/cadastrarcompra";
 import CadastrarItemCompra from "./pages/cadastraritemcompra";
 import CadastrarProduto from "./pages/cadastrarproduto";
+import CadastrarVendas from "./pages/cadastrarvendas";
+import CadastrarItemVenda from "./pages/cadastraritemvenda"
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
         <Route path ="/compras/novo" element={<CadastrarCompra/>} />
         <Route path ="/itens-compra/novo" element={<CadastrarItemCompra/>} />
         <Route path ="/produtos/novo" element={<CadastrarProduto/>} />
+        <Route path ="/vendas/novo" element={<CadastrarVendas/>} />
+        <Route path ="/itens-vendas/novo" element={<CadastrarItemVenda/>} />
 
       </Routes>
     </BrowserRouter>
