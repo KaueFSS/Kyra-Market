@@ -18,21 +18,17 @@ const estadoInicial = {
   prazo_entrega: "",
   avaliacao: "",
 };
-
 function CadastrarFornecedor() {
-  // guarda os dados do formulário
+
   const [fornecedor, setFornecedor] = useState(estadoInicial);
 
-  // mensagens de feedback
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
-  // atualiza os campos conforme o usuário digita
   function handleChange(e) {
     setFornecedor({ ...fornecedor, [e.target.name]: e.target.value });
   }
 
-  // envia os dados para a API
   async function handleSubmit(e) {
     e.preventDefault();
 
