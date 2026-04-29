@@ -15,6 +15,7 @@ import ItensVenda from "./pages/itensvenda";
 import CadastrarCliente from "./pages/cadastrarcliente";
 import CadastrarFuncionario from "./pages/cadastrarfuncionario";
 import CadastrarDespesa from "./pages/cadastrardespesa";
+import CadastrarFornecedor from "./pages/cadastrarfornecedor";
 
 function App() {
   return (
