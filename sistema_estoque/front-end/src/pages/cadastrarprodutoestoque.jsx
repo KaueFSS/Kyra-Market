@@ -5,7 +5,9 @@ import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado } from "../services/crudService";
 
-function CadastrarProduto() {
+function CadastrarProdutoEstoque() {
+    const hoje = new Date().toISOString().split("T")[0];
+
     const [produto, setProduto] = useState({
           id_produto: "",
           fornecedor: "",
@@ -14,16 +16,23 @@ function CadastrarProduto() {
           categoria: "",
           subcategoria: "",
           unidade: "",
-          ncm: "",
-          cst: "",
           codigo_barras: "",
+          preco_custo: "",
           preco: "",
     })
+
+    const [estoque, setEstoque] = useState({
+        id_estoque: produto.id_produto,
+        quantidade_atual: "",
+        quantidade_minima: "",
+        dt_ultima_entrada: hoje,
+        dt_ultima_saida: "",
+    });
 
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
 
-    function alterarCampo(event) {
+    function alterarCampoProduto(event) {
         const { name, value } = event.target;
 
          setProduto({
@@ -32,16 +41,38 @@ function CadastrarProduto() {
          });
     }
 
-    async function salvarProduto(event) {
+    function alterarCampoEstoque(event) {
+        const { name, value } = event.target;
+
+         setEstoque({
+            ...estoque,
+            [name]: value,
+         });
+    }
+
+    async function salvarProdutoEstoque(event) {
         event.preventDefault();
 
-        const dadosParaEnviar = {
+        const dadosProdutoParaEnviar = {
         ...produto,
         preco: parseFloat(produto.preco),
         };
 
+        const idEstoqueGerado = produto.id_produto.replace("PROD", "EST");
+
+        const dadosEstoqueParaEnviar = {
+        ...estoque,
+        produto: produto.id_produto,
+        id_estoque: idEstoqueGerado,
+        quantidade_atual: parseInt(estoque.quantidade_atual),
+        quantidade_minima: parseInt(estoque.quantidade_minima),
+        dt_ultima_saida: estoque.dt_ultima_saida || null,
+        dt_ultima_entrada: estoque.dt_ultima_entrada || hoje,
+        };
+
         try {
-            await criarDado("/produtos/", dadosParaEnviar);
+            await criarDado("/produtos/", dadosProdutoParaEnviar);
+            await criarDado("/estoques/", dadosEstoqueParaEnviar);
 
             setMensagem("Produto cadastrado com sucesso!");
             setErro("");
@@ -54,10 +85,18 @@ function CadastrarProduto() {
                 categoria: "",
                 subcategoria: "",
                 unidade: "",
-                ncm: "",
-                cst: "",
                 codigo_barras: "",
+                preco_custo: "",
                 preco: "",
+            });
+
+            setEstoque({
+                id_estoque: idEstoqueGerado,
+                produto: produto.id_produto,
+                quantidade_atual: "",
+                quantidade_minima: "",
+                dt_ultima_entrada: hoje,
+                dt_ultima_saida: "",
             });
         } 
         
@@ -76,12 +115,12 @@ function CadastrarProduto() {
             <MensagemSucesso mensagem={mensagem} />
             <MensagemErro mensagem={erro} />
 
-            <form onSubmit={salvarProduto}>
+            <form onSubmit={salvarProdutoEstoque}>
                 <FormInput
                     label="ID do Produto"
                     name="id_produto"
                     value={produto.id_produto}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     required={true}
                     placeholder="Ex: PROD001"
                 />
@@ -90,7 +129,7 @@ function CadastrarProduto() {
                     label="Nome do Produto"
                     name="nome"
                     value={produto.nome}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     required={true}
                     placeholder="Ex: Pepsi Twist 2L"
                 />
@@ -99,7 +138,7 @@ function CadastrarProduto() {
                     label="ID do Fornecedor"
                     name="fornecedor"
                     value={produto.fornecedor}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     required={true}
                     placeholder="Ex: FORN001"
                 />
@@ -108,7 +147,7 @@ function CadastrarProduto() {
                     label="Marca"
                     name="marca"
                     value={produto.marca}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     required={true}
                     placeholder="Ex: CocaCola"
                 />
@@ -117,7 +156,7 @@ function CadastrarProduto() {
                     label="Categoria"
                     name="categoria"
                     value={produto.categoria}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     placeholder="Ex: Alimentos"
                 />
 
@@ -125,7 +164,7 @@ function CadastrarProduto() {
                     label="Subcategoria"
                     name="subcategoria"
                     value={produto.subcategoria}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     placeholder="Ex: Refrigerantes"
                 />
 
@@ -133,29 +172,15 @@ function CadastrarProduto() {
                     label="Unidade"
                     name="unidade"
                     value={produto.unidade}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     placeholder="Ex: un, kg, cx"
-                />
-
-                <FormInput
-                    label="NCM"
-                    name="ncm"
-                    value={produto.ncm}
-                    onChange={alterarCampo}
-                />
-
-                <FormInput
-                    label="CST"
-                    name="cst"
-                    value={produto.cst}
-                    onChange={alterarCampo}
                 />
 
                 <FormInput
                     label="Código de Barras"
                     name="codigo_barras"
                     value={produto.codigo_barras}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                 />
 
                 <FormInput
@@ -164,9 +189,38 @@ function CadastrarProduto() {
                     type="number"
                     step="0.01"
                     value={produto.preco}
-                    onChange={alterarCampo}
+                    onChange={alterarCampoProduto}
                     required={true}
                     placeholder="Ex: 12.50"
+                />
+
+                <FormInput
+                    label="Preço Custo"
+                    name="preco_custo"
+                    type="number"
+                    step="0.01"
+                    value={produto.preco_custo}
+                    onChange={alterarCampoProduto}
+                    required={true}
+                    placeholder="Ex: 6.50"
+                />
+
+                <FormInput
+                    label="Quantidade Atual"
+                    name="quantidade_atual"
+                    type="number"
+                    value={estoque.quantidade_atual}
+                    onChange={alterarCampoEstoque}
+                    required={true}
+                />
+
+                <FormInput
+                    label="Quantidade mínima"
+                    name="quantidade_minima"
+                    type="number"
+                    value={estoque.quantidade_minima}
+                    onChange={alterarCampoEstoque}
+                    required={true}
                 />
 
                 <BotaoSalvar texto="Cadastrar Produto"/>
@@ -175,5 +229,5 @@ function CadastrarProduto() {
     );
 }
 
-export default CadastrarProduto;
+export default CadastrarProdutoEstoque;
 

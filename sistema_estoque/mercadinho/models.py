@@ -531,7 +531,8 @@ class Despesa(models.Model):
 
 # FIX 3: OneToOneField garante um único registro de estoque por produto
 class Estoque(models.Model):
-    id_estoque = models.AutoField(
+    id_estoque = models.CharField(
+        max_length=10,
         primary_key=True,
         verbose_name="ID do estoque",
     )
@@ -554,6 +555,11 @@ class Estoque(models.Model):
         null=True,
         blank=True,
         verbose_name="Data da última saída",
+    )
+    dt_ultima_entrada = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Data da última entrada",
     )
 
 
