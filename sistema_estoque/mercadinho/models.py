@@ -334,12 +334,6 @@ class ItemVenda(models.Model):
     quantidade_vendida = models.PositiveIntegerField(
         verbose_name="Quantidade vendida",
     )
-    preco_unitario = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0)],
-        verbose_name="Preco unitario",
-    )
     desconto_aplicado = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -348,7 +342,7 @@ class ItemVenda(models.Model):
         verbose_name="Desconto aplicado",
     )
     subtotal = models.DecimalField(
-        max_digits=10,
+        max_digits=100,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name="Subtotal",

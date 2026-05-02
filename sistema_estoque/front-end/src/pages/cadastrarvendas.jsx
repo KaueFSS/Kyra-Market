@@ -1,12 +1,12 @@
-import { useState } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect"; 
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
+import { useState, useEffect } from "react";
+import { criarDado, listarDados } from "../services/crudService";
 
-function Cadastrarvendas() {
+function CadastrarVendas() {
     const [vendas, setVendas] = useState({
         id_venda: "",
         data_venda: new Date().toISOString().split("T")[0],
@@ -16,10 +16,33 @@ function Cadastrarvendas() {
         cliente: "",
     });
 
+    const [itemAtual, setItemAtual] = useState({
+        produto: "",
+        quantidade_vendida: "",
+        desconto: "0",
+    });
+
+    const [itens, setItens] = useState([]);
+    
+    const [produtos, setProdutos] = useState([]);
+
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
 
-    function alterarCampo(event) {
+    useEffect(() => {
+        async function carregarDados() {
+            try {
+                const prod = await listarDados("/produtos/");
+        
+                setProdutos(prod.results || prod);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        carregarDados();
+    }, []);
+
+    function alterarCampoVenda(event) {
         const { name, value } = event.target;
 
         setVendas({
@@ -28,20 +51,94 @@ function Cadastrarvendas() {
         });
     }
 
+    function alterarCampoItem(event) {
+        const { name, value } = event.target;
+
+        const novoItem = {
+            ...itemAtual,
+            [name]: value,
+        };
+
+        setItemAtual(novoItem);
+    }
+
+    function arredondarMoeda(valor) {
+        return Math.round((Number(valor) + Number.EPSILON) * 100) / 100;
+    }
+
+    function adicionarItem() {
+        const qtdNum = parseInt(itemAtual.quantidade_vendida, 10) || 0;
+        const descNum = arredondarMoeda(itemAtual.desconto) || 0;
+
+        const produtoSelecionado = produtos.find(
+            (prod) => prod.id_produto === itemAtual.produto
+        );
+
+        if (!itemAtual.produto) {
+            setErro("Selecione um produto.");
+            return;
+        }
+
+        if (!produtoSelecionado) {
+            setErro("Produto inválido.");
+            return;
+        }
+
+        if (qtdNum <= 0) {
+            setErro("A quantidade deve ser maior que zero.");
+            return;
+        }
+
+        const subtotalCalculado = (qtdNum * arredondarMoeda(produtoSelecionado.preco)) - descNum;
+
+        if (subtotalCalculado < 0) {
+            setErro("O desconto não pode ser maior que o valor total dos produtos.");
+            return;
+        }
+
+        const novoItem = {
+            ...itemAtual,
+            quantidade_vendida: qtdNum,
+            desconto: descNum,
+            subtotal: subtotalCalculado,
+        };
+
+        setItens([...itens, novoItem]);
+        setErro("");
+
+        setItemAtual({
+            produto: "",
+            quantidade_vendida: "",
+            desconto: "0",
+        });
+    }
+
     async function salvarVendas(event) {
         event.preventDefault();
 
-        const dadosParaEnviar = {
-            ...vendas
-        };
+        if (itens.length === 0) {
+            setErro("Adicione pelo menos um item à venda.");
+            return;
+        }
 
         try {
-            await criarDado("/vendas/", dadosParaEnviar);
+            await criarDado("/vendas/", vendas);
+
+            for (const item of itens) {
+                const dadosItemParaEnviar = {
+                    venda: vendas.id_venda,
+                    produto: item.produto,
+                    quantidade_vendida: item.quantidade_vendida,
+                    desconto_aplicado: Number(item.desconto).toFixed(2),
+                    subtotal: Number(item.subtotal).toFixed(2),
+                };
+
+                await criarDado("/itens-venda/", dadosItemParaEnviar);
+            }
 
             setMensagem("Venda cadastrada com sucesso!");
             setErro("");
 
-            // Limpa o formulário após o sucesso
             setVendas({
                 id_venda: "",
                 data_venda: new Date().toISOString().split("T")[0],
@@ -50,82 +147,183 @@ function Cadastrarvendas() {
                 funcionario: "",
                 cliente: "",
             });
+
+            setItemAtual({
+                produto: "",
+                quantidade_vendida: "",
+                desconto: "0",
+            });
+
+            setItens([]);
         } catch (error) {
             console.error(error.response?.data);
             setErro("Erro ao cadastrar venda. Verifique os campos.");
             setMensagem("");
         }
-    } // A função salvarVendas termina AQUI!
+    }
 
     return (
-        <div style={{ color: "white", padding: "30px" }}>
-            <h1>Cadastrar Venda</h1>
-            <p>Formulário para registrar uma nova venda no sistema.</p>
+    <div style={{ color: "white", padding: "30px" }}>
+        <h1>Cadastrar Venda</h1>
+        <p>Preencha os dados da venda e adicione um ou mais itens.</p>
 
-            <MensagemSucesso mensagem={mensagem} />
-            <MensagemErro mensagem={erro} />
+        <MensagemSucesso mensagem={mensagem} />
+        <MensagemErro mensagem={erro} />
 
-            <form onSubmit={salvarVendas}>
-                <FormInput
-                    label="ID da Venda"
-                    name="id_venda"
-                    value={vendas.id_venda}
-                    onChange={alterarCampo}
-                    required={true}
-                    placeholder="Ex: V000001"
-                />
+        <form onSubmit={salvarVendas}>
+        <h2>Dados da Venda</h2>
 
-                <FormInput
-                    label="Data de Venda"
-                    name="data_venda"
-                    type="date"
-                    value={vendas.data_venda}
-                    onChange={alterarCampo}
-                    required={true}
-                />
+        <FormInput
+            label="ID da Venda"
+            name="id_venda"
+            value={vendas.id_venda}
+            onChange={alterarCampoVenda}
+            required={true}
+            placeholder="Ex: VEN001"
+        />
 
-                <FormInput
-                    label="Hora da Venda"
-                    name="hora"
-                    type="time"
-                    value={vendas.hora}
-                    onChange={alterarCampo}
-                    required={true}
-                />
+        <FormInput
+            label="Data da Venda"
+            name="data_venda"
+            type="date"
+            value={vendas.data_venda}
+            onChange={alterarCampoVenda}
+            required={true}
+        />
 
-                <FormSelect
-                    label="Forma de Pagamento"
-                    name="forma_pagamento"
-                    value={vendas.forma_pagamento}
-                    onChange={alterarCampo}
-                    options={[
-                        { value: "pix", label: "PIX" },
-                        { value: "cartao_debito", label: "Cartão de Débito" },
-                        { value: "cartao_credito", label: "Cartão de Crédito" },
-                        { value: "dinheiro", label: "Dinheiro" },
-                    ]}
-                />
+        <FormInput
+            label="Hora"
+            name="hora"
+            type="time"
+            value={vendas.hora}
+            onChange={alterarCampoVenda}
+            required={true}
+        />
 
-                <FormInput
-                    label="Funcionário Responsável"
-                    name="funcionario"
-                    value={vendas.funcionario}
-                    onChange={alterarCampo}
-                    placeholder="Ex: FUNC001"
-                />
+        <FormSelect
+            label="Forma de Pagamento"
+            name="forma_pagamento"
+            value={vendas.forma_pagamento}
+            onChange={alterarCampoVenda}
+            options={[
+            { value: "", label: "Selecione" },
+            { value: "dinheiro", label: "Dinheiro" },
+            { value: "pix", label: "Pix" },
+            { value: "cartao_debito", label: "Cartão de Débito" },
+            { value: "cartao_credito", label: "Cartão de Crédito" },
+            { value: "fiado", label: "Fiado" },
+            ]}
+        />
 
-                <FormInput
-                    label="Cliente"
-                    name="cliente"
-                    value={vendas.cliente}
-                    onChange={alterarCampo}
-                    placeholder="Ex: CLI0001"
-                />
+        <FormInput
+            label="ID do Funcionário"
+            name="funcionario"
+            value={vendas.funcionario}
+            onChange={alterarCampoVenda}
+            required={true}
+            placeholder="Ex: FUNC001"
+        />
 
-                <BotaoSalvar texto="Cadastrar Venda" />
-            </form>
+        <FormInput
+            label="ID do Cliente"
+            name="cliente"
+            value={vendas.cliente}
+            onChange={alterarCampoVenda}
+            placeholder="Ex: CLI001"
+        />
+
+        <hr style={{ margin: "30px 0" }} />
+
+        <h2>Adicionar Item à Venda</h2>
+
+        <FormSelect
+            label="Produto"
+            name="produto"
+            value={itemAtual.produto}
+            onChange={alterarCampoItem}
+            options={[
+            { value: "", label: "Selecione um produto" },
+            ...produtos.map((produto) => ({
+                value: produto.id_produto,
+                label: `${produto.id_produto} - ${produto.nome}`,
+            })),
+            ]}
+        />
+
+        <FormInput
+            label="Quantidade Vendida"
+            name="quantidade_vendida"
+            type="number"
+            value={itemAtual.quantidade_vendida}
+            onChange={alterarCampoItem}
+            placeholder="Ex: 2"
+        />
+
+        <FormInput
+            label="Desconto"
+            name="desconto"
+            type="number"
+            step="0.01"
+            value={itemAtual.desconto}
+            onChange={alterarCampoItem}
+            placeholder="Ex: 0.00"
+        />
+
+        <button
+            type="button"
+            onClick={adicionarItem}
+            style={{
+                padding: "10px 20px",
+                backgroundColor: "#1f6feb",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginTop: "10px",
+            }}
+        >
+            Adicionar Item
+        </button>
+
+        <hr style={{ margin: "30px 0" }} />
+
+        <h2>Itens da Venda</h2>
+
+        {itens.length === 0 ? (
+            <p>Nenhum item adicionado ainda.</p>
+        ) : (
+            <div>
+            {itens.map((item, index) => {
+                const produtoSelecionado = produtos.find(
+                (prod) => prod.id_produto === item.produto
+                );
+
+                return (
+                <div
+                    key={index}
+                    style={{
+                    border: "1px solid #555",
+                    padding: "15px",
+                    marginBottom: "10px",
+                    borderRadius: "8px",
+                    }}
+                >
+                    <p><strong>Produto:</strong> {produtoSelecionado ? produtoSelecionado.nome : item.produto}</p>
+                    <p><strong>Quantidade:</strong> {item.quantidade_vendida}</p>
+                    <p><strong>Desconto:</strong> R$ {item.desconto}</p>
+                    <p><strong>Subtotal:</strong> R$ {item.subtotal.toFixed(2)}</p>
+                </div>
+                );
+            })}
+            </div>
+        )}
+
+        <div style={{marginTop: "30px"}}>
+            <BotaoSalvar texto="Cadastrar Venda"/>
         </div>
+        </form>
+    </div>
     );
 }
 
-export default Cadastrarvendas;
+export default CadastrarVendas;
