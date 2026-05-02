@@ -1,5 +1,5 @@
 import FormInput from "../components/FormInput";
-import FormSelect from "../components/FormSelect"; 
+import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
@@ -44,11 +44,7 @@ function CadastrarVendas() {
 
     function alterarCampoVenda(event) {
         const { name, value } = event.target;
-
-        setVendas({
-            ...vendas,
-            [name]: value,
-        });
+        setVendas({ ...vendas, [name]: value });
     }
 
     function alterarCampoItem(event) {

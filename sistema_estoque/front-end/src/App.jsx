@@ -20,7 +20,17 @@ import CadastrarCompra from "./pages/cadastrarcompra";
 import CadastrarItemCompra from "./pages/cadastraritemcompra";
 import CadastrarProdutoEstoque from "./pages/cadastrarprodutoestoque";
 import CadastrarVendas from "./pages/cadastrarvendas";
-import CadastrarItemVenda from "./pages/cadastraritemvenda"
+import CadastrarItemVenda from "./pages/cadastraritemvenda";
+import EditarProduto from "./pages/editarproduto";
+import EditarEstoque from "./pages/editarestoque";
+import EditarFornecedor from "./pages/editarfornecedor";
+import EditarCliente from "./pages/editarcliente";
+import EditarFuncionario from "./pages/editarfuncionario";
+import EditarCompra from "./pages/editarcompra";
+import EditarDespesa from "./pages/editardespesa";
+import EditarVenda from "./pages/editarvenda";
+import EditarItemCompra from "./pages/editaritemcompra";
+import EditarItemVenda from "./pages/editaritemvenda";
 
 function App() {
   return (
@@ -48,6 +58,16 @@ function App() {
         <Route path ="/produtos/novo" element={<CadastrarProdutoEstoque/>} />
         <Route path ="/vendas/novo" element={<CadastrarVendas/>} />
         <Route path ="/itens-vendas/novo" element={<CadastrarItemVenda/>} />
+        <Route path="/produtos/:id/editar" element={<EditarProduto />} />
+        <Route path="/estoques/:id/editar" element={<EditarEstoque />} />
+        <Route path="/fornecedores/:id/editar" element={<EditarFornecedor />} />
+        <Route path="/clientes/:id/editar" element={<EditarCliente />} />
+        <Route path="/funcionarios/:id/editar" element={<EditarFuncionario />} />
+        <Route path="/compras/:id/editar" element={<EditarCompra />} />
+        <Route path="/despesas/:id/editar" element={<EditarDespesa />} />
+        <Route path="/vendas/:id/editar" element={<EditarVenda />} />
+        <Route path="/itens-compra/:id/editar" element={<EditarItemCompra />} />
+        <Route path="/itens-venda/:id/editar" element={<EditarItemVenda />} />
 
       </Routes>
     </BrowserRouter>

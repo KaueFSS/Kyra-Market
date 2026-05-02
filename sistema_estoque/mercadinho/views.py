@@ -1,15 +1,27 @@
-from django.db.models import F
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
+import uuid
+from datetime import date
 
-from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa, ItemVenda, Venda, Cliente
-from .serializers import (
-    ProdutoSerializer, EstoqueSerializer,
-    FornecedorSerializer, FuncionarioSerializer,
-    CompraFornecedorSerializer, ItemCompraSerializer,
-    DespesaSerializer, ItemVendaSerializer, VendaSerializer, ClienteSerializer
-)
+from django.db import transaction
+from django.db.models import F
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import (Cliente, CompraFornecedor, Despesa, Estoque, Fornecedor,
+                     Funcionario, ItemCompra, ItemVenda, Produto, Venda)
+from .serializers import (ClienteSerializer, CompraFornecedorSerializer,
+                          DespesaSerializer, EstoqueSerializer,
+                          FornecedorSerializer, FuncionarioSerializer,
+                          ItemCompraSerializer, ItemVendaSerializer,
+                          PagarFiadoSerializer, ProdutoSerializer,
+                          RegistrarCompraSerializer, RegistrarVendaSerializer,
+                          VendaSerializer)
+
+
+def gerar_id(prefix):
+    return f"{prefix}{uuid.uuid4().hex[:8].upper()}"
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
@@ -47,7 +59,6 @@ class CompraFornecedorViewSet(viewsets.ModelViewSet):
     queryset = CompraFornecedor.objects.select_related('fornecedor', 'funcionario').prefetch_related('itens').all()
     serializer_class = CompraFornecedorSerializer
 
-    # endpoint: /api/compras/pendentes/
     @action(detail=False, methods=['get'], url_path='pendentes')
     def pendentes(self, request):
         pendentes = self.get_queryset().filter(entregue=False)
@@ -57,17 +68,73 @@ class CompraFornecedorViewSet(viewsets.ModelViewSet):
             'resultados': serializer.data
         })
 
+    @action(detail=True, methods=['post'], url_path='entregar')
+    def entregar(self, request, pk=None):
+        """Marca uma compra pendente como entregue e atualiza o estoque."""
+        compra = self.get_object()
+
+        if compra.entregue:
+            return Response(
+                {'erro': 'Esta compra já foi marcada como entregue.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            for item in compra.itens.select_related('produto__estoque').all():
+                try:
+                    estoque = item.produto.estoque
+                except Estoque.DoesNotExist:
+                    raise Exception(f"Produto '{item.produto.nome}' não tem estoque cadastrado.")
+                estoque.quantidade_atual += item.quantidade
+                estoque.dt_ultima_entrada = date.today()
+                estoque.save()
+
+            compra.entregue = True
+            compra.data_entrega = date.today()
+            compra.save()
+
+        serializer = self.get_serializer(compra)
+        return Response(serializer.data)
+
 
 class ItemCompraViewSet(viewsets.ModelViewSet):
     queryset = ItemCompra.objects.select_related('produto', 'compra').all()
     serializer_class = ItemCompraSerializer
+
+    def perform_create(self, serializer):
+        produto = serializer.validated_data['produto']
+        quantidade = serializer.validated_data['quantidade']
+        compra = serializer.validated_data['compra']
+
+        with transaction.atomic():
+            if compra.entregue:
+                try:
+                    estoque = Estoque.objects.select_for_update().get(produto=produto)
+                except Estoque.DoesNotExist:
+                    raise DRFValidationError(
+                        {"erro": f"Produto '{produto.nome}' não tem estoque cadastrado."}
+                    )
+                estoque.quantidade_atual += quantidade
+                estoque.dt_ultima_entrada = date.today()
+                estoque.save()
+            serializer.save()
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            if instance.compra.entregue:
+                try:
+                    estoque = Estoque.objects.select_for_update().get(produto=instance.produto)
+                    estoque.quantidade_atual -= instance.quantidade
+                    estoque.save()
+                except Estoque.DoesNotExist:
+                    pass
+            instance.delete()
 
 
 class DespesaViewSet(viewsets.ModelViewSet):
     queryset = Despesa.objects.select_related('funcionario').all()
     serializer_class = DespesaSerializer
 
-    # endpoint: /api/despesas/por-categoria/?categoria=X&data_inicio=YYYY-MM-DD&data_fim=YYYY-MM-DD
     @action(detail=False, methods=['get'], url_path='por-categoria')
     def por_categoria(self, request):
         queryset = self.get_queryset()
@@ -88,14 +155,48 @@ class DespesaViewSet(viewsets.ModelViewSet):
             'total': queryset.count(),
             'resultados': serializer.data
         })
-class ItemVendaViewSet(viewsets.ModelViewSet): # permite fazer os metodos do CRUD
-    queryset = ItemVenda.objects.select_related('produto', 'venda').all() # procura no banco de dados o (produto e venda (FK)) ao mesmo tempo evitando várias queries
-# uma query pega os dados do banco de dados, se utlilizasse só o .all ele faria uma query para cada item, e suas Foreigns Keys(produto e venda) o que não seria vantajoso pois a API ficaria lenta
-    serializer_class = ItemVendaSerializer # transforma esses dados em JSON
+
+
+class ItemVendaViewSet(viewsets.ModelViewSet):
+    queryset = ItemVenda.objects.select_related('produto', 'venda').all()
+    serializer_class = ItemVendaSerializer
+
+    def perform_create(self, serializer):
+        produto = serializer.validated_data['produto']
+        quantidade = serializer.validated_data['quantidade_vendida']
+
+        with transaction.atomic():
+            try:
+                estoque = Estoque.objects.select_for_update().get(produto=produto)
+            except Estoque.DoesNotExist:
+                raise DRFValidationError(
+                    {"erro": f"Produto '{produto.nome}' não tem estoque cadastrado."}
+                )
+            if estoque.quantidade_atual < quantidade:
+                raise DRFValidationError({
+                    "erro": (
+                        f"Estoque insuficiente para '{produto.nome}' "
+                        f"(disponível: {estoque.quantidade_atual}, pedido: {quantidade})."
+                    )
+                })
+            estoque.quantidade_atual -= quantidade
+            estoque.dt_ultima_saida = date.today()
+            estoque.save()
+            serializer.save()
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            try:
+                estoque = Estoque.objects.select_for_update().get(produto=instance.produto)
+                estoque.quantidade_atual += instance.quantidade_vendida
+                estoque.save()
+            except Estoque.DoesNotExist:
+                pass
+            instance.delete()
 
 
 class VendaViewSet(viewsets.ModelViewSet):
-    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens').all() # o .prefetch_related('itens') faz uma query só para pegar todos os itens(ItemVenda) da venda sem precisar fazer várias queries
+    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens').all()
     serializer_class = VendaSerializer
 
 
@@ -103,39 +204,213 @@ class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
 
-#Endpoint com filtro de fiado
-    def get_queryset(self): # altera os dados antes de fazer a query
-        queryset = super().get_queryset() # pega o queryset padrão
-
-        possui_fiado = self.request.query_params.get('possui_fiado') #pega o valor da url
-
-        if possui_fiado is not None: # so funciona se buscar no filtro (/clientes/?possui_fiado=True)
-            queryset = queryset.filter(possui_fiado=possui_fiado == 'True')  # trasnforma a resposta em booleano
-
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        possui_fiado = self.request.query_params.get('possui_fiado')
+        if possui_fiado is not None:
+            queryset = queryset.filter(possui_fiado=possui_fiado == 'True')
         return queryset
-#Endpoint com histórico de compras    
-    @action(detail=True, methods=['get']) #Cria um novo CRUD (histórico)
+
+    @action(detail=True, methods=['get'])
     def historico(self, request, pk=None):
-        cliente = self.get_object() # pega o cliente por id
-        vendas = cliente.vendas.all() # pega todas as vendas do cliente
+        cliente = self.get_object()
+        vendas = cliente.vendas.all()
 
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
 
         if data_inicio:
-            vendas = vendas.filter(data_venda__gte=data_inicio) # gte é maior ou igual
-
+            vendas = vendas.filter(data_venda__gte=data_inicio)
         if data_fim:
-            vendas = vendas.filter(data_venda__lte=data_fim) # lte é menor ou igual
+            vendas = vendas.filter(data_venda__lte=data_fim)
 
-
-        serializer = VendaSerializer(vendas, many=True) #many=true porque são várias vendas(uma lista)
+        serializer = VendaSerializer(vendas, many=True)
         return Response(serializer.data)
 
 
+# ─── Endpoints atômicos de negócio ────────────────────────────────────────────
+
+class RegistrarVendaView(APIView):
+    """
+    POST /api/registrar-venda/
+
+    Cria a venda + itens, decrementa estoque e atualiza saldo fiado —
+    tudo em uma única transação atômica.
+    """
+
+    def post(self, request):
+        serializer = RegistrarVendaSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        dados = serializer.validated_data
+
+        try:
+            with transaction.atomic():
+                funcionario = Funcionario.objects.get(pk=dados['funcionario'])
+
+                cliente = None
+                if dados.get('cliente'):
+                    cliente = Cliente.objects.get(pk=dados['cliente'])
+
+                venda = Venda.objects.create(
+                    id_venda=gerar_id('VND'),
+                    data_venda=dados['data_venda'],
+                    hora=dados['hora'],
+                    forma_pagamento=dados['forma_pagamento'],
+                    funcionario=funcionario,
+                    cliente=cliente,
+                )
+
+                total_venda = 0
+
+                for item_data in dados['itens']:
+                    produto = Produto.objects.select_for_update().get(pk=item_data['produto'])
+
+                    try:
+                        estoque = produto.estoque
+                    except Estoque.DoesNotExist:
+                        raise ValueError(f"Produto '{produto.nome}' não tem estoque cadastrado.")
+
+                    if estoque.quantidade_atual < item_data['quantidade_vendida']:
+                        raise ValueError(
+                            f"Estoque insuficiente para '{produto.nome}' "
+                            f"(disponível: {estoque.quantidade_atual}, pedido: {item_data['quantidade_vendida']})."
+                        )
+
+                    subtotal = (
+                        item_data['preco_unitario'] * item_data['quantidade_vendida']
+                        - item_data['desconto_aplicado']
+                    )
+
+                    ItemVenda.objects.create(
+                        venda=venda,
+                        produto=produto,
+                        quantidade_vendida=item_data['quantidade_vendida'],
+                        preco_unitario=item_data['preco_unitario'],
+                        desconto_aplicado=item_data['desconto_aplicado'],
+                        subtotal=subtotal,
+                    )
+
+                    estoque.quantidade_atual -= item_data['quantidade_vendida']
+                    estoque.dt_ultima_saida = dados['data_venda']
+                    estoque.save()
+
+                    total_venda += subtotal
+
+                if cliente:
+                    cliente.ultima_compra = dados['data_venda']
+                    cliente.total_valor += total_venda
+                    if dados['forma_pagamento'] == 'fiado':
+                        cliente.saldo_fiado += total_venda
+                        cliente.possui_fiado = True
+                    cliente.save()
+
+        except (Funcionario.DoesNotExist, Cliente.DoesNotExist, Produto.DoesNotExist) as e:
+            return Response({'erro': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        venda_serializer = VendaSerializer(
+            Venda.objects.prefetch_related('itens').get(pk=venda.pk)
+        )
+        return Response(venda_serializer.data, status=status.HTTP_201_CREATED)
 
 
+class RegistrarCompraView(APIView):
+    """
+    POST /api/registrar-compra/
+
+    Cria a compra + itens e, se entregue=true, incrementa o estoque —
+    tudo em uma única transação atômica.
+    """
+
+    def post(self, request):
+        serializer = RegistrarCompraSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        dados = serializer.validated_data
+
+        try:
+            with transaction.atomic():
+                fornecedor = Fornecedor.objects.get(pk=dados['fornecedor'])
+                funcionario = Funcionario.objects.get(pk=dados['funcionario'])
+
+                compra = CompraFornecedor.objects.create(
+                    id_compra=gerar_id('CMP'),
+                    fornecedor=fornecedor,
+                    funcionario=funcionario,
+                    data_compra=dados['data_compra'],
+                    status=dados.get('status', ''),
+                    entregue=dados['entregue'],
+                    data_entrega=dados.get('data_entrega'),
+                    nota_fiscal=dados.get('nota_fiscal', ''),
+                    valor_total=dados['valor_total'],
+                )
+
+                for item_data in dados['itens']:
+                    produto = Produto.objects.select_for_update().get(pk=item_data['produto'])
+
+                    ItemCompra.objects.create(
+                        compra=compra,
+                        produto=produto,
+                        quantidade=item_data['quantidade'],
+                        valor_unitario=item_data['valor_unitario'],
+                    )
+
+                    if dados['entregue']:
+                        try:
+                            estoque = produto.estoque
+                        except Estoque.DoesNotExist:
+                            raise ValueError(f"Produto '{produto.nome}' não tem estoque cadastrado.")
+
+                        estoque.quantidade_atual += item_data['quantidade']
+                        estoque.dt_ultima_entrada = dados.get('data_entrega') or dados['data_compra']
+                        estoque.save()
+
+        except (Fornecedor.DoesNotExist, Funcionario.DoesNotExist, Produto.DoesNotExist) as e:
+            return Response({'erro': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        compra_serializer = CompraFornecedorSerializer(
+            CompraFornecedor.objects.prefetch_related('itens').get(pk=compra.pk)
+        )
+        return Response(compra_serializer.data, status=status.HTTP_201_CREATED)
 
 
+class PagarFiadoView(APIView):
+    """
+    POST /api/pagar-fiado/
 
-        
+    Registra um pagamento de fiado, decrementando o saldo do cliente.
+    """
+
+    def post(self, request):
+        serializer = PagarFiadoSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        dados = serializer.validated_data
+
+        try:
+            with transaction.atomic():
+                cliente = Cliente.objects.select_for_update().get(pk=dados['cliente'])
+
+                if dados['valor'] > cliente.saldo_fiado:
+                    raise ValueError(
+                        f"Valor R${dados['valor']} supera o saldo de R${cliente.saldo_fiado}."
+                    )
+
+                cliente.saldo_fiado -= dados['valor']
+                if cliente.saldo_fiado == 0:
+                    cliente.possui_fiado = False
+                cliente.save()
+
+        except Cliente.DoesNotExist as e:
+            return Response({'erro': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ClienteSerializer(cliente).data)

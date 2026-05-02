@@ -6,7 +6,14 @@ import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
 
+function gerarIdCompra() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `CMP${sufixo}`;
+}
+
 const estadoInicial = {
+  nome: "",
   fornecedor: "",
   funcionario: "",
   data_compra: new Date().toISOString().split("T")[0],
@@ -47,7 +54,7 @@ function CadastrarCompra() {
     e.preventDefault();
 
     try {
-      await criarDado("/compras/", compra);
+      await criarDado("/compras/", { ...compra, id_compra: gerarIdCompra() });
       setMensagem("Compra cadastrada com sucesso!");
       setErro("");
       setCompra(estadoInicial);
@@ -66,6 +73,15 @@ function CadastrarCompra() {
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit}>
+        <FormInput
+          label="Nome da Compra"
+          name="nome"
+          value={compra.nome}
+          onChange={handleChange}
+          required={true}
+          placeholder="Ex: Reposição de Laticínios - Maio"
+        />
+
         <FormSelect
           label="Fornecedor"
           name="fornecedor"

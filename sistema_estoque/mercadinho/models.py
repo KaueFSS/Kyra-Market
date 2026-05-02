@@ -214,6 +214,15 @@ class Produto(models.Model):
         primary_key=True,
         verbose_name="ID do produto",
     )
+    fornecedor = models.ForeignKey(
+        "Fornecedor",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="produtos",
+        db_column="id_fornecedor",
+        verbose_name="Fornecedor",
+    )
     nome = models.CharField(
         max_length=150,
         verbose_name="Nome",
@@ -271,6 +280,12 @@ class Venda(models.Model):
         max_length=10,
         primary_key=True,
         verbose_name="ID da venda",
+    )
+    nome = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        verbose_name="Nome da venda",
     )
     data_venda = models.DateField(
         verbose_name="Data da venda",
@@ -369,6 +384,12 @@ class CompraFornecedor(models.Model):
         max_length=10,
         primary_key=True,
         verbose_name="ID da compra",
+    )
+    nome = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        verbose_name="Nome da compra",
     )
     fornecedor = models.ForeignKey(
         Fornecedor,

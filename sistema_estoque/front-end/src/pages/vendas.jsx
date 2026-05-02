@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../services/api";
 
 function Vendas() {
@@ -70,6 +71,7 @@ function Vendas() {
                 <th>Forma de Pagamento</th>
                 <th>Funcionário</th>
                 <th>Cliente</th>
+                <th>Ações</th>
               </tr>
             </thead>
 
@@ -82,6 +84,7 @@ function Vendas() {
                   <td>{venda.forma_pagamento}</td>
                   <td>{venda.funcionario}</td>
                   <td>{venda.cliente || "Cliente não informado"}</td>
+                  <td><Link to={`/vendas/${venda.id_venda}/editar`} style={{ color: "#60a5fa" }}>Editar</Link></td>
                 </tr>
               ))}
             </tbody>

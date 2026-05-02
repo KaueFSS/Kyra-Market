@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
+import { criarDado, listarDados } from "../services/crudService";
+
+function gerarIdDespesa() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `DSP${sufixo}`;
+}
 
 function CadastrarDespesa() {
   const hoje = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState({
-    id_despesa: "",
     funcionario: "",
     compra: "",
     data: hoje,
@@ -20,8 +25,13 @@ function CadastrarDespesa() {
     recorrente: "false",
   });
 
+  const [funcionarios, setFuncionarios] = useState([]);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    listarDados("/funcionarios/").then((data) => setFuncionarios(data));
+  }, []);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -39,9 +49,9 @@ function CadastrarDespesa() {
     };
 
     try {
-      await criarDado("/despesas/", payload);
+      await criarDado("/despesas/", { ...payload, id_despesa: gerarIdDespesa() });
       setMensagem("Despesa cadastrada com sucesso!");
-      setForm({ id_despesa: "", funcionario: "", compra: "", data: hoje, categoria: "", descricao: "", valor: "0.00", recorrente: "false" });
+      setForm({ funcionario: "", compra: "", data: hoje, categoria: "", descricao: "", valor: "0.00", recorrente: "false" });
     } catch {
       setErro("Erro ao cadastrar despesa. Verifique os campos.");
       setMensagem("");
@@ -57,22 +67,12 @@ function CadastrarDespesa() {
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit}>
-        <FormInput
-          label="ID da Despesa"
-          name="id_despesa"
-          value={form.id_despesa}
-          onChange={handleChange}
-          required={true}
-          placeholder="Ex: DESP001"
-        />
-
-        <FormInput
-          label="ID do Funcionário Responsável"
+        <FormSelect
+          label="Funcionário Responsável"
           name="funcionario"
           value={form.funcionario}
           onChange={handleChange}
-          required={true}
-          placeholder="Ex: FUNC001"
+          options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.id_funcionario} - ${f.nome}` }))}
         />
 
         <FormInput

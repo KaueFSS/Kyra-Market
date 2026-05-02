@@ -7,6 +7,12 @@ import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado } from "../services/crudService";
 
 
+function gerarIdFornecedor() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `FOR${sufixo}`;
+}
+
 const estadoInicial = {
   razao_social: "",
   nome_fantasia: "",
@@ -14,8 +20,8 @@ const estadoInicial = {
   telefone: "",
   email: "",
   cidade: "",
-  estado: "",
-  prazo_entrega: "",
+  uf: "",
+  prazo_de_entraga: "",
   avaliacao: "",
 };
 function CadastrarFornecedor() {
@@ -33,7 +39,7 @@ function CadastrarFornecedor() {
     e.preventDefault();
 
     try {
-      await criarDado("/fornecedores/", fornecedor);
+      await criarDado("/fornecedores/", { ...fornecedor, id_fornecedor: gerarIdFornecedor() });
 
       setMensagem("Fornecedor cadastrado com sucesso!");
       setErro("");
@@ -101,17 +107,17 @@ function CadastrarFornecedor() {
         />
 
         <FormInput
-          label="Estado"
-          name="estado"
-          value={fornecedor.estado}
+          label="UF"
+          name="uf"
+          value={fornecedor.uf}
           onChange={handleChange}
         />
 
         <FormInput
           label="Prazo de Entrega (dias)"
-          name="prazo_entrega"
+          name="prazo_de_entraga"
           type="number"
-          value={fornecedor.prazo_entrega}
+          value={fornecedor.prazo_de_entraga}
           onChange={handleChange}
         />
 

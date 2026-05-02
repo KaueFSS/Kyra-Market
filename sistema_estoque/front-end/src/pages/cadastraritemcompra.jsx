@@ -10,7 +10,7 @@ const estadoInicial = {
   compra: "",
   produto: "",
   quantidade: "",
-  preco_unitario: "",
+  valor_unitario: "",
 };
 
 function CadastrarItemCompra() {
@@ -25,31 +25,51 @@ function CadastrarItemCompra() {
       try {
         const comp = await listarDados("/compras/");
         const prod = await listarDados("/produtos/");
-
         setCompras(comp.results || comp);
         setProdutos(prod.results || prod);
       } catch (err) {
         console.error(err);
       }
     }
-
     carregarDados();
   }, []);
 
   function handleChange(e) {
-    setItem({ ...item, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "produto") {
+      const produtoSelecionado = produtos.find((p) => p.id_produto === value);
+      setItem((prev) => ({
+        ...prev,
+        produto: value,
+        valor_unitario: produtoSelecionado
+          ? parseFloat(produtoSelecionado.preco_custo).toFixed(2)
+          : "",
+      }));
+      return;
+    }
+
+    setItem((prev) => ({ ...prev, [name]: value }));
   }
+
+  const qtd = parseFloat(item.quantidade) || 0;
+  const preco = parseFloat(item.valor_unitario) || 0;
+  const subtotal = qtd * preco;
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     try {
-      await criarDado("/itens-compra/", item);
+      await criarDado("/itens-compra/", {
+        ...item,
+        quantidade: qtd,
+        valor_unitario: preco,
+      });
       setMensagem("Item de compra cadastrado com sucesso!");
       setErro("");
       setItem(estadoInicial);
     } catch (err) {
-      setErro("Erro ao cadastrar item de compra.");
+      const msg = err.response?.data?.erro || "Erro ao cadastrar item de compra.";
+      setErro(msg);
       setMensagem("");
     }
   }
@@ -70,7 +90,7 @@ function CadastrarItemCompra() {
           onChange={handleChange}
           options={compras.map((c) => ({
             value: c.id_compra,
-            label: c.id_compra,
+            label: c.nome || `${c.fornecedor_nome || c.id_compra} — ${c.data_compra}`,
           }))}
         />
 
@@ -81,7 +101,7 @@ function CadastrarItemCompra() {
           onChange={handleChange}
           options={produtos.map((p) => ({
             value: p.id_produto,
-            label: p.nome,
+            label: `${p.nome} — Custo: R$ ${parseFloat(p.preco_custo).toFixed(2)}`,
           }))}
         />
 
@@ -89,17 +109,46 @@ function CadastrarItemCompra() {
           label="Quantidade"
           name="quantidade"
           type="number"
+          min="1"
           value={item.quantidade}
           onChange={handleChange}
+          required={true}
         />
 
         <FormInput
-          label="Preço Unitário"
-          name="preco_unitario"
+          label="Valor Unitário (R$)"
+          name="valor_unitario"
           type="number"
-          value={item.preco_unitario}
+          step="0.01"
+          min="0"
+          value={item.valor_unitario}
           onChange={handleChange}
+          required={true}
         />
+        <small style={{ display: "block", color: "#888", marginTop: "-10px", marginBottom: "15px" }}>
+          Preenchido automaticamente com o preço de custo. Pode ser alterado.
+        </small>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label>Subtotal (R$)</label>
+          <br />
+          <input
+            type="text"
+            value={subtotal.toFixed(2)}
+            disabled
+            style={{
+              padding: "8px",
+              width: "270px",
+              borderRadius: "6px",
+              border: "1px solid #555",
+              marginTop: "5px",
+              backgroundColor: "#2a2a3e",
+              color: "#4ade80",
+              fontWeight: "bold",
+              cursor: "not-allowed",
+            }}
+          />
+        </div>
 
         <BotaoSalvar texto="Cadastrar Item" />
       </form>
