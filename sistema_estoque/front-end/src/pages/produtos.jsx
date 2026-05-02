@@ -60,7 +60,7 @@ function Produtos() {
                   <td>{p.id_produto}</td>
                   <td>{p.nome}</td>
                   <td>{p.categoria}</td>
-                  <td>{p.marca}</td>
+                  <td>{p.marca || "—"}</td>
                   <td>{p.unidade}</td>
                   <td>R$ {parseFloat(p.preco_custo).toFixed(2)}</td>
                   <td>R$ {parseFloat(p.preco).toFixed(2)}</td>

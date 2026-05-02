@@ -76,8 +76,8 @@ function CadastrarItemVenda() {
       setItem(estadoInicial);
       setPrecoUnitario(0);
     } catch (err) {
-      console.error(err.response?.data);
-      setErro("Erro ao cadastrar o item da venda.");
+      const msg = err.response?.data?.erro || "Erro ao cadastrar o item da venda.";
+      setErro(msg);
       setMensagem("");
     }
   }

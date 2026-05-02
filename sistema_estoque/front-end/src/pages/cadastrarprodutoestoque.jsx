@@ -149,30 +149,13 @@ function CadastrarProdutoEstoque() {
                     }))}
                 />
 
-                <div style={{ marginBottom: "15px" }}>
-                    <label>Marca</label>
-                    <br />
-                    <input
-                        list="lista-marcas"
-                        name="marca"
-                        value={produto.marca}
-                        onChange={alterarCampoProduto}
-                        required
-                        placeholder="Digite ou selecione a marca"
-                        style={{
-                            padding: "8px",
-                            width: "270px",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc",
-                            marginTop: "5px",
-                        }}
-                    />
-                    <datalist id="lista-marcas">
-                        {fornecedores.map((f) => (
-                            <option key={f.id_fornecedor} value={f.nome_fantasia || f.razao_social} />
-                        ))}
-                    </datalist>
-                </div>
+                <FormInput
+                    label="Marca"
+                    name="marca"
+                    value={produto.marca}
+                    onChange={alterarCampoProduto}
+                    placeholder="Ex: Nestlé, Unilever"
+                />
 
                 <FormInput
                     label="Categoria"

@@ -55,23 +55,10 @@ function EditarProduto() {
           name="fornecedor"
           value={form.fornecedor || ""}
           onChange={handleChange}
-          options={fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))}
+          options={[{ value: "", label: "Sem fornecedor" }, ...fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))]}
         />
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>Marca</label><br />
-          <input
-            list="lista-marcas-edit"
-            name="marca"
-            value={form.marca || ""}
-            onChange={handleChange}
-            placeholder="Digite ou selecione a marca"
-            style={{ padding: "8px", width: "270px", borderRadius: "6px", border: "1px solid #ccc", marginTop: "5px" }}
-          />
-          <datalist id="lista-marcas-edit">
-            {fornecedores.map((f) => <option key={f.id_fornecedor} value={f.nome_fantasia || f.razao_social} />)}
-          </datalist>
-        </div>
+        <FormInput label="Marca" name="marca" value={form.marca || ""} onChange={handleChange} placeholder="Ex: Nestlé, Unilever" />
 
         <FormInput label="Categoria" name="categoria" value={form.categoria || ""} onChange={handleChange} />
         <FormInput label="Subcategoria" name="subcategoria" value={form.subcategoria || ""} onChange={handleChange} />
