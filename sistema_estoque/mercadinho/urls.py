@@ -4,11 +4,12 @@ from .views import (
     ProdutoViewSet, EstoqueViewSet,
     FornecedorViewSet, FuncionarioViewSet,
     CompraFornecedorViewSet, ItemCompraViewSet,
-    DespesaViewSet, ItemVendaViewSet, VendaViewSet ,
-    ClienteViewSet
+    DespesaViewSet, ItemVendaViewSet, VendaViewSet,
+    ClienteViewSet,
+    RegistrarVendaView, RegistrarCompraView, PagarFiadoView,
 )
- 
-router = DefaultRouter() # cria um roteador de páginas
+
+router = DefaultRouter()
 router.register(r'produtos', ProdutoViewSet, basename='produto')
 router.register(r'estoques', EstoqueViewSet, basename='estoque')
 router.register(r'fornecedores', FornecedorViewSet, basename='fornecedor')
@@ -22,4 +23,7 @@ router.register(r'clientes', ClienteViewSet, basename='cliente')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('registrar-venda/', RegistrarVendaView.as_view(), name='registrar-venda'),
+    path('registrar-compra/', RegistrarCompraView.as_view(), name='registrar-compra'),
+    path('pagar-fiado/', PagarFiadoView.as_view(), name='pagar-fiado'),
 ]

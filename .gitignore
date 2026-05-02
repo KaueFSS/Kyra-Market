@@ -1,0 +1,27 @@
+CLAUDE.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.egg-info/
+
+# Django
+db.sqlite3
+media/
+
+# Node
+node_modules/
+
+# Vite build
+dist/
+dist-ssr/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
