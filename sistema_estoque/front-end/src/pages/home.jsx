@@ -13,8 +13,6 @@ const secoes = [
     itens: [
       { label: "Vendas", to: "/vendas" },
       { label: "Nova Venda", to: "/vendas/novo" },
-      { label: "Itens de Venda", to: "/itens-venda" },
-      { label: "Novo Item de Venda", to: "/itens-vendas/novo" },
     ],
   },
   {
