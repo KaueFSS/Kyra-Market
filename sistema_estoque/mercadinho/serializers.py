@@ -64,7 +64,10 @@ class ItemVendaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class VendaSerializer(serializers.ModelSerializer):   
+class VendaSerializer(serializers.ModelSerializer):
+    itens = ItemVendaSerializer(many=True, read_only=True)
+    funcionario_nome = serializers.CharField(source='funcionario.nome', read_only=True)
+    cliente_nome = serializers.SerializerMethodField()
     itens_nomes = serializers.SerializerMethodField() # cria um campo que não existe no banco para nome dos itens
 
     total = serializers.SerializerMethodField() # cria um campo que não existe no banco para o total da venda
@@ -82,6 +85,9 @@ class VendaSerializer(serializers.ModelSerializer):
     
     def get_itens_nomes(self, obj):
         return [item.produto.nome for item in obj.itens.all()]
+
+    def get_cliente_nome(self, obj):
+        return obj.cliente.nome if obj.cliente else None
 
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:

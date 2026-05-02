@@ -196,7 +196,7 @@ class ItemVendaViewSet(viewsets.ModelViewSet):
 
 
 class VendaViewSet(viewsets.ModelViewSet):
-    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens').all()
+    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens__produto').all()
     serializer_class = VendaSerializer
 
 

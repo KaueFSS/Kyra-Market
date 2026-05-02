@@ -84,7 +84,16 @@ function Vendas() {
                   <td>{venda.forma_pagamento}</td>
                   <td>{venda.funcionario}</td>
                   <td>{venda.cliente || "Cliente não informado"}</td>
-                  <td><Link to={`/vendas/${venda.id_venda}/editar`} style={{ color: "#60a5fa" }}>Editar</Link></td>
+                  <td>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <Link to={`/vendas/${venda.id_venda}`} style={{ color: "#60a5fa" }}>
+                        Ver detalhes
+                      </Link>
+                      <Link to={`/vendas/${venda.id_venda}/editar`} style={{ color: "#60a5fa" }}>
+                        Editar
+                      </Link>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

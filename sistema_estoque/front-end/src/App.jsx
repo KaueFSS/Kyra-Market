@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Dashboard from "./pages/dashboard";
 import Vendas from "./pages/vendas";
+import DetalhesVenda from "./pages/detalhesvenda";
 import Clientes from "./pages/clientes";
 import Relatorios from "./pages/relatorio";
 import Produtos from "./pages/produtos";
@@ -20,7 +21,6 @@ import CadastrarCompra from "./pages/cadastrarcompra";
 import CadastrarItemCompra from "./pages/cadastraritemcompra";
 import CadastrarProdutoEstoque from "./pages/cadastrarprodutoestoque";
 import CadastrarVendas from "./pages/cadastrarvendas";
-import CadastrarItemVenda from "./pages/cadastraritemvenda";
 import EditarProduto from "./pages/editarproduto";
 import EditarEstoque from "./pages/editarestoque";
 import EditarFornecedor from "./pages/editarfornecedor";
@@ -57,7 +57,6 @@ function App() {
         <Route path ="/itens-compra/novo" element={<CadastrarItemCompra/>} />
         <Route path ="/produtos/novo" element={<CadastrarProdutoEstoque/>} />
         <Route path ="/vendas/novo" element={<CadastrarVendas/>} />
-        <Route path ="/itens-vendas/novo" element={<CadastrarItemVenda/>} />
         <Route path="/produtos/:id/editar" element={<EditarProduto />} />
         <Route path="/estoques/:id/editar" element={<EditarEstoque />} />
         <Route path="/fornecedores/:id/editar" element={<EditarFornecedor />} />
@@ -66,6 +65,7 @@ function App() {
         <Route path="/compras/:id/editar" element={<EditarCompra />} />
         <Route path="/despesas/:id/editar" element={<EditarDespesa />} />
         <Route path="/vendas/:id/editar" element={<EditarVenda />} />
+        <Route path="/vendas/:id" element={<DetalhesVenda />} />
         <Route path="/itens-compra/:id/editar" element={<EditarItemCompra />} />
         <Route path="/itens-venda/:id/editar" element={<EditarItemVenda />} />
 
