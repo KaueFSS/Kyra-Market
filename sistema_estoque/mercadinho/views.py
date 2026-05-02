@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import F
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -100,6 +101,35 @@ class ItemCompraViewSet(viewsets.ModelViewSet):
     queryset = ItemCompra.objects.select_related('produto', 'compra').all()
     serializer_class = ItemCompraSerializer
 
+    def perform_create(self, serializer):
+        produto = serializer.validated_data['produto']
+        quantidade = serializer.validated_data['quantidade']
+        compra = serializer.validated_data['compra']
+
+        with transaction.atomic():
+            if compra.entregue:
+                try:
+                    estoque = Estoque.objects.select_for_update().get(produto=produto)
+                except Estoque.DoesNotExist:
+                    raise DRFValidationError(
+                        {"erro": f"Produto '{produto.nome}' não tem estoque cadastrado."}
+                    )
+                estoque.quantidade_atual += quantidade
+                estoque.dt_ultima_entrada = date.today()
+                estoque.save()
+            serializer.save()
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            if instance.compra.entregue:
+                try:
+                    estoque = Estoque.objects.select_for_update().get(produto=instance.produto)
+                    estoque.quantidade_atual -= instance.quantidade
+                    estoque.save()
+                except Estoque.DoesNotExist:
+                    pass
+            instance.delete()
+
 
 class DespesaViewSet(viewsets.ModelViewSet):
     queryset = Despesa.objects.select_related('funcionario').all()
@@ -130,6 +160,39 @@ class DespesaViewSet(viewsets.ModelViewSet):
 class ItemVendaViewSet(viewsets.ModelViewSet):
     queryset = ItemVenda.objects.select_related('produto', 'venda').all()
     serializer_class = ItemVendaSerializer
+
+    def perform_create(self, serializer):
+        produto = serializer.validated_data['produto']
+        quantidade = serializer.validated_data['quantidade_vendida']
+
+        with transaction.atomic():
+            try:
+                estoque = Estoque.objects.select_for_update().get(produto=produto)
+            except Estoque.DoesNotExist:
+                raise DRFValidationError(
+                    {"erro": f"Produto '{produto.nome}' não tem estoque cadastrado."}
+                )
+            if estoque.quantidade_atual < quantidade:
+                raise DRFValidationError({
+                    "erro": (
+                        f"Estoque insuficiente para '{produto.nome}' "
+                        f"(disponível: {estoque.quantidade_atual}, pedido: {quantidade})."
+                    )
+                })
+            estoque.quantidade_atual -= quantidade
+            estoque.dt_ultima_saida = date.today()
+            estoque.save()
+            serializer.save()
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            try:
+                estoque = Estoque.objects.select_for_update().get(produto=instance.produto)
+                estoque.quantidade_atual += instance.quantidade_vendida
+                estoque.save()
+            except Estoque.DoesNotExist:
+                pass
+            instance.delete()
 
 
 class VendaViewSet(viewsets.ModelViewSet):

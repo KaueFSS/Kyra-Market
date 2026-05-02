@@ -214,6 +214,15 @@ class Produto(models.Model):
         primary_key=True,
         verbose_name="ID do produto",
     )
+    fornecedor = models.ForeignKey(
+        "Fornecedor",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="produtos",
+        db_column="id_fornecedor",
+        verbose_name="Fornecedor",
+    )
     nome = models.CharField(
         max_length=150,
         verbose_name="Nome",

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa, ItemVenda, Venda, Cliente
 
 class ProdutoSerializer(serializers.ModelSerializer):
+    fornecedor_nome = serializers.CharField(source='fornecedor.nome_fantasia', read_only=True, default=None)
+
     class Meta:
         model = Produto
         fields = '__all__'
