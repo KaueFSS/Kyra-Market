@@ -11,7 +11,6 @@ import Funcionarios from "./pages/funcionarios";
 import Compras from "./pages/compras";
 import ItensCompra from "./pages/itensCompra";
 import Despesas from "./pages/despesas";
-import ItensVenda from "./pages/itensvenda";
 import CadastrarCliente from "./pages/cadastrarcliente";
 import CadastrarFuncionario from "./pages/cadastrarfuncionario";
 import CadastrarDespesa from "./pages/cadastrardespesa";
@@ -20,7 +19,6 @@ import CadastrarCompra from "./pages/cadastrarcompra";
 import CadastrarItemCompra from "./pages/cadastraritemcompra";
 import CadastrarProdutoEstoque from "./pages/cadastrarprodutoestoque";
 import CadastrarVendas from "./pages/cadastrarvendas";
-import CadastrarItemVenda from "./pages/cadastraritemvenda";
 import EditarProduto from "./pages/editarproduto";
 import EditarEstoque from "./pages/editarestoque";
 import EditarFornecedor from "./pages/editarfornecedor";
@@ -48,7 +46,6 @@ function App() {
         <Route path="/compras" element={<Compras />} />
         <Route path="/itens-compra" element={<ItensCompra />} />
         <Route path="/despesas" element={<Despesas />} />
-        <Route path="/itens-venda" element={<ItensVenda />} />
         <Route path="/clientes/novo" element={<CadastrarCliente/>} />
         <Route path="/funcionarios/novo" element={<CadastrarFuncionario/>} />
         <Route path="/despesas/novo" element={<CadastrarDespesa/>} />
@@ -57,7 +54,6 @@ function App() {
         <Route path ="/itens-compra/novo" element={<CadastrarItemCompra/>} />
         <Route path ="/produtos/novo" element={<CadastrarProdutoEstoque/>} />
         <Route path ="/vendas/novo" element={<CadastrarVendas/>} />
-        <Route path ="/itens-vendas/novo" element={<CadastrarItemVenda/>} />
         <Route path="/produtos/:id/editar" element={<EditarProduto />} />
         <Route path="/estoques/:id/editar" element={<EditarEstoque />} />
         <Route path="/fornecedores/:id/editar" element={<EditarFornecedor />} />
