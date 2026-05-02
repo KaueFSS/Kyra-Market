@@ -1,61 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormInput from "../components/FormInput";
-import FormSelect from "../components/FormSelect"; 
+import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
+import { criarDado, listarDados } from "../services/crudService";
+
+function gerarIdVenda() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    return `VND${sufixo}`;
+}
+
+const estadoInicial = {
+    nome: "",
+    data_venda: new Date().toISOString().split("T")[0],
+    hora: "",
+    forma_pagamento: "",
+    funcionario: "",
+    cliente: "",
+};
 
 function Cadastrarvendas() {
-    const [vendas, setVendas] = useState({
-        id_venda: "",
-        data_venda: new Date().toISOString().split("T")[0],
-        hora: "",
-        forma_pagamento: "",
-        funcionario: "",
-        cliente: "",
-    });
-
+    const [vendas, setVendas] = useState(estadoInicial);
+    const [funcionarios, setFuncionarios] = useState([]);
+    const [clientes, setClientes] = useState([]);
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
 
+    useEffect(() => {
+        listarDados("/funcionarios/").then((data) => setFuncionarios(data));
+        listarDados("/clientes/").then((data) => setClientes(data));
+    }, []);
+
     function alterarCampo(event) {
         const { name, value } = event.target;
-
-        setVendas({
-            ...vendas,
-            [name]: value,
-        });
+        setVendas({ ...vendas, [name]: value });
     }
 
     async function salvarVendas(event) {
         event.preventDefault();
 
         const dadosParaEnviar = {
-            ...vendas
+            ...vendas,
+            id_venda: gerarIdVenda(),
+            cliente: vendas.cliente || null,
         };
 
         try {
             await criarDado("/vendas/", dadosParaEnviar);
-
             setMensagem("Venda cadastrada com sucesso!");
             setErro("");
-
-            // Limpa o formulário após o sucesso
-            setVendas({
-                id_venda: "",
-                data_venda: new Date().toISOString().split("T")[0],
-                hora: "",
-                forma_pagamento: "",
-                funcionario: "",
-                cliente: "",
-            });
+            setVendas(estadoInicial);
         } catch (error) {
             console.error(error.response?.data);
             setErro("Erro ao cadastrar venda. Verifique os campos.");
             setMensagem("");
         }
-    } // A função salvarVendas termina AQUI!
+    }
 
     return (
         <div style={{ color: "white", padding: "30px" }}>
@@ -67,12 +69,12 @@ function Cadastrarvendas() {
 
             <form onSubmit={salvarVendas}>
                 <FormInput
-                    label="ID da Venda"
-                    name="id_venda"
-                    value={vendas.id_venda}
+                    label="Nome da Venda"
+                    name="nome"
+                    value={vendas.nome}
                     onChange={alterarCampo}
                     required={true}
-                    placeholder="Ex: V000001"
+                    placeholder="Ex: Venda Balcão - Manhã"
                 />
 
                 <FormInput
@@ -98,28 +100,40 @@ function Cadastrarvendas() {
                     name="forma_pagamento"
                     value={vendas.forma_pagamento}
                     onChange={alterarCampo}
+                    required={true}
                     options={[
+                        { value: "dinheiro", label: "Dinheiro" },
                         { value: "pix", label: "PIX" },
                         { value: "cartao_debito", label: "Cartão de Débito" },
                         { value: "cartao_credito", label: "Cartão de Crédito" },
-                        { value: "dinheiro", label: "Dinheiro" },
+                        { value: "fiado", label: "Fiado" },
                     ]}
                 />
 
-                <FormInput
+                <FormSelect
                     label="Funcionário Responsável"
                     name="funcionario"
                     value={vendas.funcionario}
                     onChange={alterarCampo}
-                    placeholder="Ex: FUNC001"
+                    required={true}
+                    options={funcionarios.map((f) => ({
+                        value: f.id_funcionario,
+                        label: `${f.nome} — ${f.cargo}`,
+                    }))}
                 />
 
-                <FormInput
-                    label="Cliente"
+                <FormSelect
+                    label="Cliente (opcional)"
                     name="cliente"
                     value={vendas.cliente}
                     onChange={alterarCampo}
-                    placeholder="Ex: CLI0001"
+                    options={[
+                        { value: "", label: "Sem cliente" },
+                        ...clientes.map((c) => ({
+                            value: c.id_cliente,
+                            label: c.nome,
+                        })),
+                    ]}
                 />
 
                 <BotaoSalvar texto="Cadastrar Venda" />

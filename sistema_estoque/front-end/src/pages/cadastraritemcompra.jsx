@@ -10,7 +10,7 @@ const estadoInicial = {
   compra: "",
   produto: "",
   quantidade: "",
-  preco_unitario: "",
+  valor_unitario: "",
 };
 
 function CadastrarItemCompra() {
@@ -70,7 +70,7 @@ function CadastrarItemCompra() {
           onChange={handleChange}
           options={compras.map((c) => ({
             value: c.id_compra,
-            label: c.id_compra,
+            label: c.nome || `${c.fornecedor_nome || c.id_compra} — ${c.data_compra}`,
           }))}
         />
 
@@ -95,9 +95,9 @@ function CadastrarItemCompra() {
 
         <FormInput
           label="Preço Unitário"
-          name="preco_unitario"
+          name="valor_unitario"
           type="number"
-          value={item.preco_unitario}
+          value={item.valor_unitario}
           onChange={handleChange}
         />
 

@@ -9,15 +9,15 @@ import { criarDado, listarDados } from "../services/crudService";
 const estadoInicial = {
   venda: "",
   produto: "",
-  quantidade: "",
-  preco_unitario: "",
-  desconto: "0",
+  quantidade_vendida: "",
+  desconto_aplicado: "0",
 };
 
 function CadastrarItemVenda() {
   const [item, setItem] = useState(estadoInicial);
   const [vendas, setVendas] = useState([]);
   const [produtos, setProdutos] = useState([]);
+  const [precoUnitario, setPrecoUnitario] = useState(0);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
@@ -26,9 +26,8 @@ function CadastrarItemVenda() {
       try {
         const ven = await listarDados("/vendas/");
         const prod = await listarDados("/produtos/");
-
-        setVendas(ven.results || ven);
-        setProdutos(prod.results || prod);
+        setVendas(ven);
+        setProdutos(prod);
       } catch (err) {
         console.error(err);
       }
@@ -37,38 +36,45 @@ function CadastrarItemVenda() {
   }, []);
 
   function handleChange(e) {
-    setItem({ ...item, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "produto") {
+      const produtoSelecionado = produtos.find((p) => p.id_produto === value);
+      setPrecoUnitario(produtoSelecionado ? parseFloat(produtoSelecionado.preco) : 0);
+    }
+
+    setItem((prev) => ({ ...prev, [name]: value }));
   }
 
-  const qtdNum = parseInt(item.quantidade, 10) || 0;
-  const precoNum = parseFloat(item.preco_unitario) || 0;
-  const descNum = parseFloat(item.desconto) || 0;
-  
-  const subtotalCalculado = (qtdNum * precoNum) - descNum;
+  const qtd = parseInt(item.quantidade_vendida, 10) || 0;
+  const descontoPct = parseFloat(item.desconto_aplicado) || 0;
+  const totalBruto = qtd * precoUnitario;
+  const descontoValor = totalBruto * (descontoPct / 100);
+  const subtotal = totalBruto - descontoValor;
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // Verificação de segurança (Regra de Negócio)
-    if (subtotalCalculado < 0) {
-        setErro("O desconto não pode ser maior que o valor total dos produtos.");
-        return; // Impede o envio para o banco
+    if (subtotal < 0) {
+      setErro("O desconto não pode ser maior que o valor total dos produtos.");
+      return;
     }
 
     const dadosParaEnviar = {
-      ...item,
-      quantidade: qtdNum,
-      preco_unitario: precoNum,
-      desconto: descNum,
-      subtotal: subtotalCalculado,
+      venda: item.venda,
+      produto: item.produto,
+      quantidade_vendida: qtd,
+      preco_unitario: precoUnitario,
+      desconto_aplicado: descontoValor,
+      subtotal,
     };
 
     try {
-      await criarDado("/itens-venda/", dadosParaEnviar); 
-      
+      await criarDado("/itens-venda/", dadosParaEnviar);
       setMensagem("Item adicionado à venda com sucesso!");
       setErro("");
       setItem(estadoInicial);
+      setPrecoUnitario(0);
     } catch (err) {
       console.error(err.response?.data);
       setErro("Erro ao cadastrar o item da venda.");
@@ -86,13 +92,13 @@ function CadastrarItemVenda() {
 
       <form onSubmit={handleSubmit}>
         <FormSelect
-          label="ID da Venda"
+          label="Venda"
           name="venda"
           value={item.venda}
           onChange={handleChange}
           options={vendas.map((v) => ({
             value: v.id_venda,
-            label: `Venda ${v.id_venda}`,
+            label: v.nome || `Venda ${v.id_venda} — ${v.data_venda}`,
           }))}
         />
 
@@ -103,44 +109,75 @@ function CadastrarItemVenda() {
           onChange={handleChange}
           options={produtos.map((p) => ({
             value: p.id_produto,
-            label: p.nome,
+            label: `${p.nome} — R$ ${parseFloat(p.preco).toFixed(2)}`,
           }))}
         />
 
         <FormInput
           label="Quantidade"
-          name="quantidade"
+          name="quantidade_vendida"
           type="number"
-          value={item.quantidade}
+          min="1"
+          value={item.quantidade_vendida}
           onChange={handleChange}
+          required={true}
         />
 
-        <FormInput
-          label="Preço Unitário (R$)"
-          name="preco_unitario"
-          type="number"
-          step="0.01"
-          value={item.preco_unitario}
-          onChange={handleChange}
-        />
+        <div style={{ marginBottom: "15px" }}>
+          <label>Preço Unitário (R$)</label>
+          <br />
+          <input
+            type="text"
+            value={precoUnitario.toFixed(2)}
+            disabled
+            style={{
+              padding: "8px",
+              width: "270px",
+              borderRadius: "6px",
+              border: "1px solid #555",
+              marginTop: "5px",
+              backgroundColor: "#2a2a3e",
+              color: "#aaa",
+              cursor: "not-allowed",
+            }}
+          />
+          <small style={{ display: "block", color: "#888", marginTop: "4px" }}>
+            Preenchido automaticamente ao selecionar o produto
+          </small>
+        </div>
 
         <FormInput
-          label="Desconto (R$)"
-          name="desconto"
+          label="Desconto (%)"
+          name="desconto_aplicado"
           type="number"
-          step="0.01"
-          value={item.desconto}
+          step="1"
+          min="0"
+          max="100"
+          value={item.desconto_aplicado}
           onChange={handleChange}
+          placeholder="Ex: 10"
         />
 
-        <FormInput
-          label="Subtotal Calculado (R$)"
-          name="subtotal"
-          type="number"
-          value={subtotalCalculado.toFixed(2)}
-          disabled={true}
-          onChange={() => {}}
-        />
+        <div style={{ marginBottom: "15px" }}>
+          <label>Subtotal (R$)</label>
+          <br />
+          <input
+            type="text"
+            value={subtotal >= 0 ? subtotal.toFixed(2) : "0.00"}
+            disabled
+            style={{
+              padding: "8px",
+              width: "270px",
+              borderRadius: "6px",
+              border: "1px solid #555",
+              marginTop: "5px",
+              backgroundColor: "#2a2a3e",
+              color: subtotal >= 0 ? "#4ade80" : "#f87171",
+              fontWeight: "bold",
+              cursor: "not-allowed",
+            }}
+          />
+        </div>
 
         <BotaoSalvar texto="Adicionar à Venda" />
       </form>

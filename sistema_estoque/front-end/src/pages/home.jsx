@@ -34,6 +34,12 @@ function Home() {
         <Link to="/clientes/novo" style={linkStyle}>Cadastrar Cliente</Link>
         <Link to="/funcionarios/novo" style={linkStyle}>Cadastrar Funcionário</Link>
         <Link to="/despesas/novo" style={linkStyle}>Cadastrar Despesa</Link>
+        <Link to="/fornecedores/novo" style={linkStyle}>Cadastrar Fornecedor</Link>
+        <Link to="/compras/novo" style={linkStyle}>Cadastrar Compra</Link>
+        <Link to="/itens-compra/novo" style={linkStyle}>Cadastrar Item de Compra</Link>
+        <Link to="/produtos/novo" style={linkStyle}>Cadastrar Produto</Link>
+        <Link to="/vendas/novo" style={linkStyle}>Cadastrar Venda</Link>
+        <Link to="/itens-vendas/novo" style={linkStyle}>Cadastrar Item de Venda</Link>
       </div>
     </div>
   );

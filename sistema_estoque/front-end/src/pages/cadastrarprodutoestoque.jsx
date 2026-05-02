@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormInput from "../components/FormInput";
+import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
+import { criarDado, listarDados } from "../services/crudService";
+
+function gerarIdProduto() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `PRD${sufixo}`;
+}
 
 function CadastrarProdutoEstoque() {
     const hoje = new Date().toISOString().split("T")[0];
 
     const [produto, setProduto] = useState({
-          id_produto: "",
           fornecedor: "",
           nome: "",
           marca: "",
@@ -29,8 +35,13 @@ function CadastrarProdutoEstoque() {
         dt_ultima_saida: "",
     });
 
+    const [fornecedores, setFornecedores] = useState([]);
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
+
+    useEffect(() => {
+        listarDados("/fornecedores/").then((data) => setFornecedores(data));
+    }, []);
 
     function alterarCampoProduto(event) {
         const { name, value } = event.target;
@@ -53,16 +64,19 @@ function CadastrarProdutoEstoque() {
     async function salvarProdutoEstoque(event) {
         event.preventDefault();
 
+        const idProdutoGerado = gerarIdProduto();
+
         const dadosProdutoParaEnviar = {
         ...produto,
+        id_produto: idProdutoGerado,
         preco: parseFloat(produto.preco),
         };
 
-        const idEstoqueGerado = produto.id_produto.replace("PROD", "EST");
+        const idEstoqueGerado = `EST${idProdutoGerado.slice(3)}`;
 
         const dadosEstoqueParaEnviar = {
         ...estoque,
-        produto: produto.id_produto,
+        produto: idProdutoGerado,
         id_estoque: idEstoqueGerado,
         quantidade_atual: parseInt(estoque.quantidade_atual),
         quantidade_minima: parseInt(estoque.quantidade_minima),
@@ -78,7 +92,6 @@ function CadastrarProdutoEstoque() {
             setErro("");
 
             setProduto({
-                id_produto: "",
                 fornecedor: "",
                 nome: "",
                 marca: "",
@@ -117,15 +130,6 @@ function CadastrarProdutoEstoque() {
 
             <form onSubmit={salvarProdutoEstoque}>
                 <FormInput
-                    label="ID do Produto"
-                    name="id_produto"
-                    value={produto.id_produto}
-                    onChange={alterarCampoProduto}
-                    required={true}
-                    placeholder="Ex: PROD001"
-                />
-
-                <FormInput
                     label="Nome do Produto"
                     name="nome"
                     value={produto.nome}
@@ -134,23 +138,41 @@ function CadastrarProdutoEstoque() {
                     placeholder="Ex: Pepsi Twist 2L"
                 />
 
-                <FormInput
-                    label="ID do Fornecedor"
+                <FormSelect
+                    label="Fornecedor"
                     name="fornecedor"
                     value={produto.fornecedor}
                     onChange={alterarCampoProduto}
-                    required={true}
-                    placeholder="Ex: FORN001"
+                    options={fornecedores.map((f) => ({
+                        value: f.id_fornecedor,
+                        label: f.nome_fantasia || f.razao_social,
+                    }))}
                 />
 
-                <FormInput
-                    label="Marca"
-                    name="marca"
-                    value={produto.marca}
-                    onChange={alterarCampoProduto}
-                    required={true}
-                    placeholder="Ex: CocaCola"
-                />
+                <div style={{ marginBottom: "15px" }}>
+                    <label>Marca</label>
+                    <br />
+                    <input
+                        list="lista-marcas"
+                        name="marca"
+                        value={produto.marca}
+                        onChange={alterarCampoProduto}
+                        required
+                        placeholder="Digite ou selecione a marca"
+                        style={{
+                            padding: "8px",
+                            width: "270px",
+                            borderRadius: "6px",
+                            border: "1px solid #ccc",
+                            marginTop: "5px",
+                        }}
+                    />
+                    <datalist id="lista-marcas">
+                        {fornecedores.map((f) => (
+                            <option key={f.id_fornecedor} value={f.nome_fantasia || f.razao_social} />
+                        ))}
+                    </datalist>
+                </div>
 
                 <FormInput
                     label="Categoria"

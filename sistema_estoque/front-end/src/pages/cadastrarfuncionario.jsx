@@ -6,8 +6,13 @@ import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado } from "../services/crudService";
 
+function gerarIdFuncionario() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return `FNC${sufixo}`;
+}
+
 const estadoInicial = {
-  id_funcionario: "",
   nome: "",
   cargo: "",
   data_admissao: new Date().toISOString().split("T")[0],
@@ -32,6 +37,7 @@ function CadastrarFuncionario() {
     try {
       await criarDado("/funcionarios/", {
         ...funcionario,
+        id_funcionario: gerarIdFuncionario(),
         ativo: funcionario.ativo === "true",
       });
 
@@ -53,15 +59,6 @@ function CadastrarFuncionario() {
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit}>
-        <FormInput
-          label="ID do Funcionário"
-          name="id_funcionario"
-          value={funcionario.id_funcionario}
-          onChange={handleChange}
-          required={true}
-          placeholder="Ex: FUNC001"
-        />
-
         <FormInput
           label="Nome"
           name="nome"
