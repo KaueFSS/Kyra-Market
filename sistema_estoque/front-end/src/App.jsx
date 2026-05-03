@@ -17,7 +17,6 @@ import CadastrarFuncionario from "./pages/cadastrarfuncionario";
 import CadastrarDespesa from "./pages/cadastrardespesa";
 import CadastrarFornecedor from "./pages/cadastrarfornecedor";
 import CadastrarCompra from "./pages/cadastrarcompra";
-import CadastrarItemCompra from "./pages/cadastraritemcompra";
 import CadastrarProdutoEstoque from "./pages/cadastrarprodutoestoque";
 import CadastrarVendas from "./pages/cadastrarvendas";
 import EditarProduto from "./pages/editarproduto";
@@ -52,7 +51,6 @@ function App() {
         <Route path="/despesas/novo" element={<CadastrarDespesa/>} />
         <Route path="/fornecedores/novo" element={<CadastrarFornecedor/>} />
         <Route path ="/compras/novo" element={<CadastrarCompra/>} />
-        <Route path ="/itens-compra/novo" element={<CadastrarItemCompra/>} />
         <Route path ="/produtos/novo" element={<CadastrarProdutoEstoque/>} />
         <Route path ="/vendas/novo" element={<CadastrarVendas/>} />
         <Route path="/produtos/:id/editar" element={<EditarProduto />} />
