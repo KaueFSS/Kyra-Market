@@ -11,7 +11,7 @@ function gerarIdCompra() {
   const sufixo = Array.from({ length: 7 }, () =>
     chars[Math.floor(Math.random() * chars.length)]
   ).join("");
-  return `CMP${sufixo}`;
+  return "CMP" + sufixo;
 }
 
 const estadoInicialCompra = {

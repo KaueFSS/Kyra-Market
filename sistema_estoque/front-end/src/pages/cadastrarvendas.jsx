@@ -6,6 +6,14 @@ import MensagemSucesso from "../components/MensagemSucesso";
 import { useState, useEffect } from "react";
 import { criarDado, listarDados, atualizarDado } from "../services/crudService";
 
+function gerarIdVenda() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 7 }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+  return "VND" + sufixo;
+}
+
 function CadastrarVendas() {
     const [vendas, setVendas] = useState({
         id_venda: "",
@@ -120,16 +128,20 @@ function CadastrarVendas() {
             setErro("Adicione pelo menos um item à venda.");
             return;
         }
+        const vendaComId = {
+            ...vendas,
+            id_venda: gerarIdVenda(),
+            };
 
         try {
             //criação da venda
-            await criarDado("/vendas/", vendas);
+            await criarDado("/vendas/", vendaComId);
 
             //criação de todos os itens e atualização de seus estoques correspondentes
             for (const item of itens) {
                 //criação do item
                 const dadosItemParaEnviar = {
-                    venda: vendas.id_venda,
+                    venda: vendaComId.id_venda,
                     produto: item.produto,
                     quantidade_vendida: item.quantidade_vendida,
                     desconto_aplicado: Number(item.desconto).toFixed(2),
@@ -212,15 +224,6 @@ function CadastrarVendas() {
 
         <form onSubmit={salvarVendas}>
         <h2>Dados da Venda</h2>
-
-        <FormInput
-            label="ID da Venda"
-            name="id_venda"
-            value={vendas.id_venda}
-            onChange={alterarCampoVenda}
-            required={true}
-            placeholder="Ex: VEN001"
-        />
 
         <FormInput
             label="Data da Venda"
