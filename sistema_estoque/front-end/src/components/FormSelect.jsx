@@ -11,7 +11,7 @@ function FormSelect({ label, name, value, onChange, options = [], required = fal
         required={required}
         style={{
           padding: "8px",
-          width: "270px",
+          width: "340px",
           borderRadius: "6px",
           border: "1px solid #ccc",
           marginTop: "5px",
