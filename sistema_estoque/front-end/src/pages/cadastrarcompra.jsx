@@ -95,11 +95,20 @@ function CadastrarCompra() {
     }
 
     try {
+      const total = calcularTotal();
       const novaCompra = await criarDado("/compras/", {
         ...compra,
         id_compra: gerarIdCompra(),
-        valor_total: calcularTotal(),
+        valor_total: total,
       });
+
+        await criarDado("/despesas/", {
+          descricao: `Compra ${novaCompra.id_compra}`,
+          valor: total,
+          data: compra.data_compra,
+          fornecedor: compra.fornecedor,
+          tipo: "Compra",
+        });
 
       for (let item of itens) {
         await criarDado("/itens-compra/", {
