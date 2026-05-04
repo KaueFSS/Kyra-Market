@@ -4,7 +4,7 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { useState, useEffect } from "react";
-import { criarDado, listarDados } from "../services/crudService";
+import { criarDado, listarDados, atualizarDado } from "../services/crudService";
 
 function CadastrarVendas() {
     const [vendas, setVendas] = useState({
@@ -26,6 +26,8 @@ function CadastrarVendas() {
     
     const [produtos, setProdutos] = useState([]);
 
+    const [estoques, setEstoques] = useState([]);
+
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
 
@@ -33,8 +35,10 @@ function CadastrarVendas() {
         async function carregarDados() {
             try {
                 const prod = await listarDados("/produtos/");
-        
+                const est = await listarDados("/estoques/");
+
                 setProdutos(prod.results || prod);
+                setEstoques(est.results || est);
             } catch (err) {
                 console.error(err);
             }
@@ -118,9 +122,12 @@ function CadastrarVendas() {
         }
 
         try {
+            //criação da venda
             await criarDado("/vendas/", vendas);
 
+            //criação de todos os itens e atualização de seus estoques correspondentes
             for (const item of itens) {
+                //criação do item
                 const dadosItemParaEnviar = {
                     venda: vendas.id_venda,
                     produto: item.produto,
@@ -130,6 +137,43 @@ function CadastrarVendas() {
                 };
 
                 await criarDado("/itens-venda/", dadosItemParaEnviar);
+
+                //atualização do estoque
+                const estoqueDoProduto = estoques.find(
+                    (estoque) => estoque.produto === item.produto
+                );
+
+                if (!estoqueDoProduto) {
+                    setErro(`Estoque não encontrado para o produto ${item.produto}.`);
+                    return;
+                }
+
+                const novaQuantidade = estoqueDoProduto.quantidade_atual - item.quantidade_vendida;
+
+                if (novaQuantidade < 0) {
+                    setErro(`Estoque insuficiente para o produto ${item.produto}.`);
+                    return;
+                }
+
+                await atualizarDado("/estoques/", estoqueDoProduto.id_estoque, {
+                ...estoqueDoProduto,
+                quantidade_atual: novaQuantidade,
+                dt_ultima_saida: new Date().toISOString().split("T")[0],
+                });
+
+                setEstoques((prevEstoques) => {
+                    return prevEstoques.map((estoque) => {
+                        if (estoque.id_estoque === estoqueDoProduto.id_estoque) {
+                            return {
+                                ...estoque,
+                                quantidade_atual: novaQuantidade,
+                                dt_ultima_saida: new Date().toISOString().split("T")[0],
+                            };
+                        } else {
+                            return estoque;
+                        }
+                    });
+                });
             }
 
             setMensagem("Venda cadastrada com sucesso!");
