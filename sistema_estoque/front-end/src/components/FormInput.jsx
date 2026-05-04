@@ -13,7 +13,7 @@ function FormInput({ label, name, value, onChange, type = "text", required = fal
         placeholder={placeholder}
         style={{
           padding: "8px",
-          width: "250px",
+          width: "320px",
           borderRadius: "6px",
           border: "1px solid #ccc",
           marginTop: "5px",

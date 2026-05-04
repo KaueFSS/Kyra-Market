@@ -3,8 +3,10 @@ import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
+import Select from "react-select";
 import { useState, useEffect } from "react";
 import { criarDado, listarDados, atualizarDado } from "../services/crudService";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function gerarIdVenda() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -33,8 +35,12 @@ function CadastrarVendas() {
     const [itens, setItens] = useState([]);
     
     const [produtos, setProdutos] = useState([]);
-
+      
     const [estoques, setEstoques] = useState([]);
+
+    const [clientes, setClientes] = useState([]);
+    
+    const [funcionarios, setFuncionarios] = useState([]);
 
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
@@ -44,9 +50,13 @@ function CadastrarVendas() {
             try {
                 const prod = await listarDados("/produtos/");
                 const est = await listarDados("/estoques/");
+                const cli = await listarDados("/clientes/");
+                const func = await listarDados("/funcionarios/");
 
                 setProdutos(prod.results || prod);
                 setEstoques(est.results || est);
+                setClientes(cli.results || cli);
+                setFuncionarios(func.results || func);
             } catch (err) {
                 console.error(err);
             }
@@ -214,6 +224,21 @@ function CadastrarVendas() {
         }
     }
 
+    const opcoesFuncionarios = funcionarios.map((funcionario) => ({
+        value: funcionario.id_funcionario,
+        label: `${funcionario.id_funcionario} - ${funcionario.nome}`,
+    }));
+
+    const opcoesClientes = clientes.map((cliente) => ({
+        value: cliente.id_cliente,
+        label: `${cliente.id_cliente} - ${cliente.nome}`,
+    }));
+
+    const opcoesProdutos = produtos.map((produto) => ({
+        value: produto.id_produto,
+        label: `${produto.id_produto} - ${produto.nome}`,
+    }));
+
     return (
     <div style={{ color: "white", padding: "30px" }}>
         <h1>Cadastrar Venda</h1>
@@ -258,39 +283,36 @@ function CadastrarVendas() {
             ]}
         />
 
-        <FormInput
-            label="ID do Funcionário"
+        <FormSelectSearch
+            label="Selecione um funcionário"
             name="funcionario"
             value={vendas.funcionario}
             onChange={alterarCampoVenda}
-            required={true}
-            placeholder="Ex: FUNC001"
+            options={opcoesFuncionarios}
+            placeholder = "Selecione..."
         />
 
-        <FormInput
-            label="ID do Cliente"
+        <FormSelectSearch
+            label="Selecione um cliente"
             name="cliente"
             value={vendas.cliente}
             onChange={alterarCampoVenda}
-            placeholder="Ex: CLI001"
+            options={opcoesClientes}
+            placeholder = "Selecione..."
+            isClearable = {true}
         />
 
         <hr style={{ margin: "30px 0" }} />
 
         <h2>Adicionar Item à Venda</h2>
 
-        <FormSelect
-            label="Produto"
+        <FormSelectSearch
+            label="Selecione um produto"
             name="produto"
             value={itemAtual.produto}
             onChange={alterarCampoItem}
-            options={[
-            { value: "", label: "Selecione um produto" },
-            ...produtos.map((produto) => ({
-                value: produto.id_produto,
-                label: `${produto.id_produto} - ${produto.nome}`,
-            })),
-            ]}
+            options={opcoesProdutos}
+            placeholder = "Selecione..."
         />
 
         <FormInput
