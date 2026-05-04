@@ -5,6 +5,7 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function gerarIdProduto() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -120,6 +121,11 @@ function CadastrarProdutoEstoque() {
         }
     }
 
+    const opcoesFornecedores = fornecedores.map((fornecedor) => ({
+        value: fornecedor.id_fornecedor,
+        label: `${fornecedor.id_fornecedor} - ${fornecedor.nome_fantasia}`,
+    }));
+
     return (
         <div style={{ color: "white", padding: "30px" }}>
             <h1>Cadastrar Produto</h1>
@@ -138,15 +144,13 @@ function CadastrarProdutoEstoque() {
                     placeholder="Ex: Pepsi Twist 2L"
                 />
 
-                <FormSelect
+                <FormSelectSearch
                     label="Fornecedor"
                     name="fornecedor"
                     value={produto.fornecedor}
                     onChange={alterarCampoProduto}
-                    options={fornecedores.map((f) => ({
-                        value: f.id_fornecedor,
-                        label: f.nome_fantasia || f.razao_social,
-                    }))}
+                    options={opcoesFornecedores}
+                    placeholder="Selecione..."
                 />
 
                 <FormInput
