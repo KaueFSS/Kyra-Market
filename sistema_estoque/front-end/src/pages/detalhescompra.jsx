@@ -1,99 +1,139 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "../services/api";
+
+function formatarMoeda(valor) {
+  return `R$ ${Number.parseFloat(valor || 0).toFixed(2)}`;
+}
 
 function DetalhesCompra() {
   const { id } = useParams();
-
   const [compra, setCompra] = useState(null);
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    api.get(`/compras/${id}/`)
-      .then((res) => {
-        setCompra(res.data);
+    setCarregando(true);
+
+    api
+      .get(`/compras/${id}/`)
+      .then((response) => {
+        setCompra(response.data);
         setErro("");
       })
       .catch(() => {
-        setErro("Erro ao carregar compra.");
-      });
+        setErro("Nao foi possivel carregar os detalhes da compra.");
+        setCompra(null);
+      })
+      .finally(() => setCarregando(false));
   }, [id]);
 
-  if (erro) return <p style={{ color: "red" }}>{erro}</p>;
-  if (!compra) return <p>Carregando...</p>;
+  if (carregando) {
+    return <div style={{ color: "white", padding: "30px" }}>Carregando compra...</div>;
+  }
+
+  if (erro) {
+    return (
+      <div style={{ color: "white", padding: "30px" }}>
+        <p style={{ color: "red" }}>{erro}</p>
+        <Link to="/compras" style={{ color: "#60a5fa" }}>
+          Voltar para compras
+        </Link>
+      </div>
+    );
+  }
+
+  if (!compra) {
+    return null;
+  }
+
+  const itens = compra.itens || [];
 
   return (
     <div style={{ color: "white", padding: "30px" }}>
-      <h1>Detalhes da Compra</h1>
-      <p>Compra {compra.id_compra}</p>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", alignItems: "center" }}>
+        <div>
+          <h1>Detalhes da Compra</h1>
+          <p style={{ color: "#aaa" }}>Compra {compra.id_compra}</p>
+        </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+        <Link to="/compras" style={{ color: "#60a5fa" }}>
+          Voltar
+        </Link>
+      </div>
+
+      <div
+        style={{
+          marginTop: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "12px",
+        }}
+      >
         <div>
           <strong>Fornecedor</strong>
-          <p>{compra.fornecedor_nome}</p>
+          <p>{compra.fornecedor_nome || compra.fornecedor}</p>
         </div>
-
         <div>
-          <strong>Funcionário</strong>
-          <p>{compra.funcionario_nome}</p>
+          <strong>Funcionario</strong>
+          <p>{compra.funcionario_nome || compra.funcionario}</p>
         </div>
-
         <div>
-          <strong>Data</strong>
+          <strong>Data da Compra</strong>
           <p>{compra.data_compra}</p>
         </div>
-
         <div>
           <strong>Status</strong>
-          <p>{compra.status}</p>
+          <p>{compra.status || "Sem status"}</p>
         </div>
-
         <div>
-          <strong>Entrega</strong>
-          <p>{compra.data_entrega ? "✓ Sim" : "✗ Não"}</p>
+          <strong>Entregue</strong>
+          <p>{compra.entregue ? "Sim" : "Nao"}</p>
         </div>
-
         <div>
-          <strong>Total</strong>
-          <p style={{ color: "#4ade80" }}>
-            R$ {parseFloat(compra.valor_total).toFixed(2)}
-          </p>
+          <strong>Nota Fiscal</strong>
+          <p>{compra.nota_fiscal || "Nao informada"}</p>
+        </div>
+        <div>
+          <strong>Valor Total</strong>
+          <p style={{ color: "#4ade80", fontWeight: "bold" }}>{formatarMoeda(compra.valor_total)}</p>
         </div>
       </div>
 
-      <h2 style={{ marginTop: "30px" }}>Itens da Compra</h2>
+      <h2 style={{ marginTop: "30px" }}>Produtos da Compra</h2>
 
-      <table
-        border="1"
-        cellPadding="10"
-        style={{ width: "100%", marginTop: "10px", borderCollapse: "collapse" }}
-      >
-        <thead>
-          <tr>
-            <th>Produto</th>
-            <th>Quantidade</th>
-            <th>Preço Unitário</th>
-            <th>Subtotal</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {compra.itens.map((item) => (
-            <tr key={item.id_item_compra}>
-              <td>{item.produto_nome}</td>
-              <td>{item.quantidade_comprada}</td>
-              <td>R$ {parseFloat(item.preco_unitario).toFixed(2)}</td>
-              <td>
-                R$ {(item.quantidade_comprada * item.preco_unitario).toFixed(2)}
-              </td>
+      {itens.length === 0 ? (
+        <p>Nenhum item vinculado a esta compra.</p>
+      ) : (
+        <table
+          border="1"
+          cellPadding="10"
+          style={{ borderCollapse: "collapse", marginTop: "20px", width: "100%" }}
+        >
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Valor Unitario</th>
+              <th>Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {itens.map((item) => {
+              const total = Number(item.quantidade || 0) * Number.parseFloat(item.valor_unitario || 0);
 
-      <Link to="/compras" style={{ display: "block", marginTop: "20px", color: "#60a5fa" }}>
-        Voltar
-      </Link>
+              return (
+                <tr key={item.id_item_compra}>
+                  <td>{item.produto_nome || item.produto}</td>
+                  <td>{item.quantidade}</td>
+                  <td>{formatarMoeda(item.valor_unitario)}</td>
+                  <td>{formatarMoeda(total)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

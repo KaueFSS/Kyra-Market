@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function ItensVenda() {
   const [itens, setItens] = useState([]);
@@ -9,9 +10,11 @@ function ItensVenda() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(false);
   const [temAnterior, setTemAnterior] = useState(false);
+  const [itemSelecionado, setItemSelecionado] = useState("");
 
   useEffect(() => {
     setCarregando(true);
+    setItemSelecionado("");
 
     api
       .get(`/itens-venda/?page=${pagina}`)
@@ -34,6 +37,19 @@ function ItensVenda() {
       .finally(() => setCarregando(false));
   }, [pagina]);
 
+  function alterarItemSelecionado(event) {
+    setItemSelecionado(event.target.value);
+  }
+
+  const opcoesItens = itens.map((item) => ({
+    value: item.id_item_venda,
+    label: `${item.id_item_venda} - ${item.produto_nome || item.produto}`,
+  }));
+
+  const itensFiltrados = itemSelecionado
+    ? itens.filter((item) => item.id_item_venda === itemSelecionado)
+    : itens;
+
   return (
     <div style={{ color: "white", padding: "30px" }}>
       <h1>Itens de Venda</h1>
@@ -44,6 +60,16 @@ function ItensVenda() {
 
       {itens.length > 0 && (
         <>
+          <FormSelectSearch
+            label="Pesquisar item de venda"
+            name="itemSelecionado"
+            value={itemSelecionado}
+            onChange={alterarItemSelecionado}
+            options={opcoesItens}
+            placeholder="Selecione um item..."
+            isClearable={true}
+          />
+
           <table
             border="1"
             cellPadding="10"
@@ -60,7 +86,7 @@ function ItensVenda() {
               </tr>
             </thead>
             <tbody>
-              {itens.map((item) => (
+              {itensFiltrados.map((item) => (
                 <tr key={item.id_item_venda}>
                   <td>{item.venda}</td>
                   <td>{item.produto_nome || item.produto}</td>

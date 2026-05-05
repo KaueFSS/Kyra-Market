@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function ItensCompra() {
   const [itens, setItens] = useState([]);
@@ -9,9 +10,11 @@ function ItensCompra() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(false);
   const [temAnterior, setTemAnterior] = useState(false);
+  const [itemSelecionado, setItemSelecionado] = useState("");
 
   useEffect(() => {
     setCarregando(true);
+    setItemSelecionado("");
     api.get(`/itens-compra/?page=${pagina}`)
       .then((response) => {
         if (Array.isArray(response.data)) {
@@ -31,6 +34,19 @@ function ItensCompra() {
       .finally(() => setCarregando(false));
   }, [pagina]);
 
+  function alterarItemSelecionado(event) {
+    setItemSelecionado(event.target.value);
+  }
+
+  const opcoesItens = itens.map((item) => ({
+    value: item.id_item_compra,
+    label: `${item.id_item_compra} - ${item.produto_nome || item.produto}`,
+  }));
+
+  const itensFiltrados = itemSelecionado
+    ? itens.filter((item) => item.id_item_compra === itemSelecionado)
+    : itens;
+
   return (
     <div style={{ color: "white", padding: "30px" }}>
       <h1>Itens de Compra</h1>
@@ -41,6 +57,16 @@ function ItensCompra() {
 
       {itens.length > 0 && (
         <>
+          <FormSelectSearch
+            label="Pesquisar item de compra"
+            name="itemSelecionado"
+            value={itemSelecionado}
+            onChange={alterarItemSelecionado}
+            options={opcoesItens}
+            placeholder="Selecione um item..."
+            isClearable={true}
+          />
+
           <table border="1" cellPadding="10" style={{ borderCollapse: "collapse", marginTop: "20px", width: "100%" }}>
             <thead>
               <tr>
@@ -53,7 +79,7 @@ function ItensCompra() {
               </tr>
             </thead>
             <tbody>
-              {itens.map((item) => (
+              {itensFiltrados.map((item) => (
                 <tr key={item.id_item_compra}>
                   <td>{item.compra}</td>
                   <td>{item.produto_nome || item.produto}</td>

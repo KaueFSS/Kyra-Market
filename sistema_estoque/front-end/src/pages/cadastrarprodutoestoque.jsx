@@ -6,12 +6,7 @@ import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
 import FormSelectSearch from "../components/FormSelectSearch";
-
-function gerarIdProduto() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `PRD${sufixo}`;
-}
+import { gerarIdSequencial } from "../utils/gerarIdSequencial";
 
 function CadastrarProdutoEstoque() {
     const hoje = new Date().toISOString().split("T")[0];
@@ -29,7 +24,8 @@ function CadastrarProdutoEstoque() {
     })
 
     const [estoque, setEstoque] = useState({
-        id_estoque: produto.id_produto,
+        id_estoque: "",
+        produto: "",
         quantidade_atual: "",
         quantidade_minima: "",
         dt_ultima_entrada: hoje,
@@ -37,11 +33,13 @@ function CadastrarProdutoEstoque() {
     });
 
     const [fornecedores, setFornecedores] = useState([]);
+    const [produtos, setProdutos] = useState([]);
     const [mensagem, setMensagem] = useState("");
     const [erro, setErro] = useState("");
 
     useEffect(() => {
         listarDados("/fornecedores/").then((data) => setFornecedores(data));
+        listarDados("/produtos/").then((data) => setProdutos(data));
     }, []);
 
     function alterarCampoProduto(event) {
@@ -65,7 +63,7 @@ function CadastrarProdutoEstoque() {
     async function salvarProdutoEstoque(event) {
         event.preventDefault();
 
-        const idProdutoGerado = gerarIdProduto();
+        const idProdutoGerado = gerarIdSequencial(produtos, "id_produto", "PRD");
 
         const dadosProdutoParaEnviar = {
         ...produto,
@@ -86,8 +84,9 @@ function CadastrarProdutoEstoque() {
         };
 
         try {
-            await criarDado("/produtos/", dadosProdutoParaEnviar);
+            const produtoCriado = await criarDado("/produtos/", dadosProdutoParaEnviar);
             await criarDado("/estoques/", dadosEstoqueParaEnviar);
+            setProdutos((produtosAtuais) => [...produtosAtuais, produtoCriado]);
 
             setMensagem("Produto cadastrado com sucesso!");
             setErro("");
@@ -105,8 +104,8 @@ function CadastrarProdutoEstoque() {
             });
 
             setEstoque({
-                id_estoque: idEstoqueGerado,
-                produto: produto.id_produto,
+                id_estoque: "",
+                produto: "",
                 quantidade_atual: "",
                 quantidade_minima: "",
                 dt_ultima_entrada: hoje,

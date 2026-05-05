@@ -1,4 +1,3 @@
-import uuid
 from datetime import date
 
 from django.db import transaction
@@ -20,8 +19,18 @@ from .serializers import (ClienteSerializer, CompraFornecedorSerializer,
                           VendaSerializer)
 
 
-def gerar_id(prefix):
-    return f"{prefix}{uuid.uuid4().hex[:8].upper()}"
+def gerar_id_sequencial(modelo, campo_id, prefixo):
+    filtro_prefixo = {f"{campo_id}__startswith": prefixo}
+    ids = modelo.objects.filter(**filtro_prefixo).values_list(campo_id, flat=True)
+    maior_numero = 0
+
+    for id_atual in ids:
+        sufixo = str(id_atual)[len(prefixo):]
+        if sufixo.isdigit():
+            maior_numero = max(maior_numero, int(sufixo))
+
+    tamanho_sufixo = max(1, 10 - len(prefixo))
+    return f"{prefixo}{str(maior_numero + 1).zfill(tamanho_sufixo)}"
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
@@ -90,6 +99,7 @@ class CompraFornecedorViewSet(viewsets.ModelViewSet):
                 estoque.save()
 
             compra.entregue = True
+            compra.status = "Entregue"
             compra.data_entrega = date.today()
             compra.save()
 
@@ -254,7 +264,8 @@ class RegistrarVendaView(APIView):
                     cliente = Cliente.objects.get(pk=dados['cliente'])
 
                 venda = Venda.objects.create(
-                    id_venda=gerar_id('VND'),
+                    id_venda=gerar_id_sequencial(Venda, 'id_venda', 'VND'),
+                    nome=dados.get('nome', ''),
                     data_venda=dados['data_venda'],
                     hora=dados['hora'],
                     forma_pagamento=dados['forma_pagamento'],
@@ -287,7 +298,6 @@ class RegistrarVendaView(APIView):
                         venda=venda,
                         produto=produto,
                         quantidade_vendida=item_data['quantidade_vendida'],
-                        preco_unitario=item_data['preco_unitario'],
                         desconto_aplicado=item_data['desconto_aplicado'],
                         subtotal=subtotal,
                     )
@@ -338,7 +348,8 @@ class RegistrarCompraView(APIView):
                 funcionario = Funcionario.objects.get(pk=dados['funcionario'])
 
                 compra = CompraFornecedor.objects.create(
-                    id_compra=gerar_id('CMP'),
+                    id_compra=gerar_id_sequencial(CompraFornecedor, 'id_compra', 'CMP'),
+                    nome=dados.get('nome', ''),
                     fornecedor=fornecedor,
                     funcionario=funcionario,
                     data_compra=dados['data_compra'],
@@ -368,6 +379,17 @@ class RegistrarCompraView(APIView):
                         estoque.quantidade_atual += item_data['quantidade']
                         estoque.dt_ultima_entrada = dados.get('data_entrega') or dados['data_compra']
                         estoque.save()
+
+                Despesa.objects.create(
+                    id_despesa=gerar_id_sequencial(Despesa, 'id_despesa', 'DESP'),
+                    funcionario=funcionario,
+                    compra=compra,
+                    data=dados['data_compra'],
+                    categoria='Compra',
+                    descricao=f"Compra {compra.id_compra}",
+                    valor=dados['valor_total'],
+                    recorrente=False,
+                )
 
         except (Fornecedor.DoesNotExist, Funcionario.DoesNotExist, Produto.DoesNotExist) as e:
             return Response({'erro': str(e)}, status=status.HTTP_404_NOT_FOUND)

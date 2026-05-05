@@ -1,26 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
-
-function gerarIdCompra() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 7 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join("");
-  return "CMP" + sufixo;
-}
-
-function gerarIdDespesa() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 6 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join("");
-  return "DESP" + sufixo;
-}
 
 const estadoInicialCompra = {
   nome: "",
@@ -41,11 +25,9 @@ function CadastrarCompra() {
   const [compra, setCompra] = useState(estadoInicialCompra);
   const [itemAtual, setItemAtual] = useState(estadoInicialItem);
   const [itens, setItens] = useState([]);
-
   const [fornecedores, setFornecedores] = useState([]);
   const [funcionarios, setFuncionarios] = useState([]);
   const [produtos, setProdutos] = useState([]);
-
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
@@ -75,32 +57,34 @@ function CadastrarCompra() {
     const { name, value } = e.target;
 
     if (name === "produto") {
-      const produtoSelecionado = produtos.find(
-        (p) => p.id_produto == value
-      );
+      const produtoSelecionado = produtos.find((produto) => produto.id_produto === value);
 
       setItemAtual({
         ...itemAtual,
         produto: value,
         preco_unitario: produtoSelecionado?.preco || "",
       });
-    } else {
-      setItemAtual({ ...itemAtual, [name]: value });
+      return;
     }
+
+    setItemAtual({ ...itemAtual, [name]: value });
   }
 
   function adicionarItem() {
-    if (
-      !itemAtual.produto ||
-      !itemAtual.quantidade_comprada ||
-      !itemAtual.preco_unitario
-    ) {
+    if (!itemAtual.produto || !itemAtual.quantidade_comprada || !itemAtual.preco_unitario) {
       setErro("Preencha todos os campos do item.");
       return;
     }
 
     if (Number(itemAtual.quantidade_comprada) <= 0) {
       setErro("Quantidade deve ser maior que 0.");
+      return;
+    }
+
+    const itemJaAdicionado = itens.some((item) => item.produto === itemAtual.produto);
+
+    if (itemJaAdicionado) {
+      setErro("Este produto ja foi adicionado nesta compra.");
       return;
     }
 
@@ -111,10 +95,7 @@ function CadastrarCompra() {
 
   function calcularTotal() {
     return itens.reduce(
-      (acc, item) =>
-        acc +
-        Number(item.quantidade_comprada) *
-          Number(item.preco_unitario),
+      (acc, item) => acc + Number(item.quantidade_comprada) * Number(item.preco_unitario),
       0
     );
   }
@@ -123,51 +104,43 @@ function CadastrarCompra() {
     e.preventDefault();
 
     if (itens.length === 0) {
-      setErro("Adicione pelo menos um item à compra.");
+      setErro("Adicione pelo menos um item a compra.");
       return;
     }
 
-    if (itens.some(item => Number(item.quantidade_comprada) <= 0)) {
-      setErro("Existe item com quantidade inválida.");
+    if (itens.some((item) => Number(item.quantidade_comprada) <= 0)) {
+      setErro("Existe item com quantidade invalida.");
       return;
     }
 
     try {
-      const total = calcularTotal();
+      const entregue = compra.status === "Entregue";
 
-      const novaCompra = await criarDado("/compras/", {
-        ...compra,
-        id_compra: gerarIdCompra(),
-        valor_total: total,
-      });
-
-      for (let item of itens) {
-        await criarDado("/itens-compra/", {
+      await criarDado("/registrar-compra/", {
+        nome: compra.nome,
+        fornecedor: compra.fornecedor,
+        funcionario: compra.funcionario,
+        data_compra: compra.data_compra,
+        status: compra.status,
+        entregue,
+        data_entrega: compra.data_entrega || null,
+        valor_total: calcularTotal().toFixed(2),
+        itens: itens.map((item) => ({
           produto: item.produto,
           quantidade: Number(item.quantidade_comprada),
-          valor_unitario: Number(item.preco_unitario),
-          compra: novaCompra.id_compra,
-        });
-      }
-
-      await criarDado("/despesas/", {
-        id_despesa: gerarIdDespesa(),
-        descricao: `Compra ${novaCompra.id_compra}`,
-        valor: total.toFixed(2),
-        data: compra.data_compra,
-        categoria: "Compra",
-        recorrente: false,
-        funcionario: compra.funcionario,
-        compra: novaCompra.id_compra,
+          valor_unitario: Number(item.preco_unitario).toFixed(2),
+        })),
       });
 
       setMensagem("Compra cadastrada com sucesso!");
       setErro("");
       setCompra(estadoInicialCompra);
+      setItemAtual(estadoInicialItem);
       setItens([]);
     } catch (err) {
       console.log("ERRO BACKEND:", JSON.stringify(err.response?.data, null, 2));
-      setErro("Erro ao cadastrar compra.");
+      setErro(err.response?.data?.erro || "Erro ao cadastrar compra.");
+      setMensagem("");
     }
   }
 
@@ -194,20 +167,20 @@ function CadastrarCompra() {
           name="fornecedor"
           value={compra.fornecedor}
           onChange={handleChangeCompra}
-          options={fornecedores.map((f) => ({
-            value: f.id_fornecedor,
-            label: f.nome_fantasia,
+          options={fornecedores.map((fornecedor) => ({
+            value: fornecedor.id_fornecedor,
+            label: fornecedor.nome_fantasia || fornecedor.razao_social,
           }))}
         />
 
         <FormSelect
-          label="Funcionário"
+          label="Funcionario"
           name="funcionario"
           value={compra.funcionario}
           onChange={handleChangeCompra}
-          options={funcionarios.map((f) => ({
-            value: f.id_funcionario,
-            label: f.nome,
+          options={funcionarios.map((funcionario) => ({
+            value: funcionario.id_funcionario,
+            label: funcionario.nome,
           }))}
         />
 
@@ -247,9 +220,9 @@ function CadastrarCompra() {
           name="produto"
           value={itemAtual.produto}
           onChange={handleChangeItem}
-          options={produtos.map((p) => ({
-            value: p.id_produto,
-            label: p.nome,
+          options={produtos.map((produto) => ({
+            value: produto.id_produto,
+            label: produto.nome,
           }))}
         />
 
@@ -263,7 +236,7 @@ function CadastrarCompra() {
         />
 
         <FormInput
-          label="Preço Unitário"
+          label="Preco Unitario"
           name="preco_unitario"
           type="text"
           value={itemAtual.preco_unitario}
@@ -277,11 +250,17 @@ function CadastrarCompra() {
         <h3>Itens adicionados</h3>
 
         <ul>
-          {itens.map((item, index) => (
-            <li key={index}>
-              {item.produto} - {item.quantidade_comprada} x {item.preco_unitario}
-            </li>
-          ))}
+          {itens.map((item, index) => {
+            const produtoSelecionado = produtos.find(
+              (produto) => produto.id_produto === item.produto
+            );
+
+            return (
+              <li key={index}>
+                {produtoSelecionado?.nome || item.produto} - {item.quantidade_comprada} x {item.preco_unitario}
+              </li>
+            );
+          })}
         </ul>
 
         <h3>Total: R$ {calcularTotal().toFixed(2)}</h3>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function Vendas() {
   const [vendas, setVendas] = useState([]);
@@ -9,9 +10,11 @@ function Vendas() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(false);
   const [temAnterior, setTemAnterior] = useState(false);
+  const [vendaSelecionada, setVendaSelecionada] = useState("");
 
   useEffect(() => {
     setCarregando(true);
+    setVendaSelecionada("");
 
     api.get(`/vendas/?page=${pagina}`)
       .then((response) => {
@@ -40,6 +43,19 @@ function Vendas() {
       });
   }, [pagina]);
 
+  function alterarVendaSelecionada(event) {
+    setVendaSelecionada(event.target.value);
+  }
+
+  const opcoesVendas = vendas.map((venda) => ({
+    value: venda.id_venda,
+    label: `${venda.id_venda} - ${venda.cliente_nome || venda.cliente || "Cliente nao informado"} - ${venda.data_venda}`,
+  }));
+
+  const vendasFiltradas = vendaSelecionada
+    ? vendas.filter((venda) => venda.id_venda === vendaSelecionada)
+    : vendas;
+
   return (
     <div style={{ color: "white", padding: "30px" }}>
       <h1>Vendas</h1>
@@ -54,6 +70,16 @@ function Vendas() {
 
       {vendas.length > 0 && (
         <>
+          <FormSelectSearch
+            label="Pesquisar venda"
+            name="vendaSelecionada"
+            value={vendaSelecionada}
+            onChange={alterarVendaSelecionada}
+            options={opcoesVendas}
+            placeholder="Selecione uma venda..."
+            isClearable={true}
+          />
+
           <table
             border="1"
             cellPadding="10"
@@ -76,7 +102,7 @@ function Vendas() {
             </thead>
 
             <tbody>
-              {vendas.map((venda) => (
+              {vendasFiltradas.map((venda) => (
                 <tr key={venda.id_venda}>
                   <td>{venda.id_venda}</td>
                   <td>{venda.data_venda}</td>

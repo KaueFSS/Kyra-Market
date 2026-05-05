@@ -1,16 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
-
-function gerarIdFuncionario() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `FNC${sufixo}`;
-}
+import { criarDado, listarDados } from "../services/crudService";
+import { gerarIdSequencial } from "../utils/gerarIdSequencial";
 
 const estadoInicial = {
   nome: "",
@@ -24,8 +19,13 @@ const estadoInicial = {
 
 function CadastrarFuncionario() {
   const [funcionario, setFuncionario] = useState(estadoInicial);
+  const [funcionarios, setFuncionarios] = useState([]);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    listarDados("/funcionarios/").then((data) => setFuncionarios(data));
+  }, []);
 
   function handleChange(e) {
     setFuncionario({ ...funcionario, [e.target.name]: e.target.value });
@@ -35,11 +35,12 @@ function CadastrarFuncionario() {
     e.preventDefault();
 
     try {
-      await criarDado("/funcionarios/", {
+      const funcionarioCriado = await criarDado("/funcionarios/", {
         ...funcionario,
-        id_funcionario: gerarIdFuncionario(),
+        id_funcionario: gerarIdSequencial(funcionarios, "id_funcionario", "FNC"),
         ativo: funcionario.ativo === "true",
       });
+      setFuncionarios((funcionariosAtuais) => [...funcionariosAtuais, funcionarioCriado]);
 
       setMensagem("Funcionário cadastrado com sucesso!");
       setErro("");

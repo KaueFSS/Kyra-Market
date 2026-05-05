@@ -105,6 +105,7 @@ class ItemVendaInputSerializer(serializers.Serializer):
 
 
 class RegistrarVendaSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=False, allow_blank=True, default='')
     funcionario = serializers.CharField()
     cliente = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     data_venda = serializers.DateField()
@@ -127,6 +128,7 @@ class ItemCompraInputSerializer(serializers.Serializer):
 
 
 class RegistrarCompraSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=False, allow_blank=True, default='')
     fornecedor = serializers.CharField()
     funcionario = serializers.CharField()
     data_compra = serializers.DateField()

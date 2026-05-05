@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function Fornecedores() {
   const [fornecedores, setFornecedores] = useState([]);
@@ -9,9 +10,11 @@ function Fornecedores() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(false);
   const [temAnterior, setTemAnterior] = useState(false);
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState("");
 
   useEffect(() => {
     setCarregando(true);
+    setFornecedorSelecionado("");
     api.get(`/fornecedores/?page=${pagina}`)
       .then((response) => {
         if (Array.isArray(response.data)) {
@@ -31,6 +34,19 @@ function Fornecedores() {
       .finally(() => setCarregando(false));
   }, [pagina]);
 
+  function alterarFornecedorSelecionado(event) {
+    setFornecedorSelecionado(event.target.value);
+  }
+
+  const opcoesFornecedores = fornecedores.map((fornecedor) => ({
+    value: fornecedor.id_fornecedor,
+    label: `${fornecedor.id_fornecedor} - ${fornecedor.nome_fantasia || fornecedor.razao_social}`,
+  }));
+
+  const fornecedoresFiltrados = fornecedorSelecionado
+    ? fornecedores.filter((fornecedor) => fornecedor.id_fornecedor === fornecedorSelecionado)
+    : fornecedores;
+
   return (
     <div style={{ color: "white", padding: "30px" }}>
       <h1>Fornecedores</h1>
@@ -41,6 +57,16 @@ function Fornecedores() {
 
       {fornecedores.length > 0 && (
         <>
+          <FormSelectSearch
+            label="Pesquisar fornecedor"
+            name="fornecedorSelecionado"
+            value={fornecedorSelecionado}
+            onChange={alterarFornecedorSelecionado}
+            options={opcoesFornecedores}
+            placeholder="Selecione um fornecedor..."
+            isClearable={true}
+          />
+
           <table border="1" cellPadding="10" style={{ borderCollapse: "collapse", marginTop: "20px", width: "100%" }}>
             <thead>
               <tr>
@@ -56,7 +82,7 @@ function Fornecedores() {
               </tr>
             </thead>
             <tbody>
-              {fornecedores.map((f) => (
+              {fornecedoresFiltrados.map((f) => (
                 <tr key={f.id_fornecedor}>
                   <td>{f.id_fornecedor}</td>
                   <td>{f.razao_social}</td>

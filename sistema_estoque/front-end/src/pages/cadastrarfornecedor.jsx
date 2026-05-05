@@ -1,17 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import { criarDado } from "../services/crudService";
-
-
-function gerarIdFornecedor() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `FOR${sufixo}`;
-}
+import { criarDado, listarDados } from "../services/crudService";
+import { gerarIdSequencial } from "../utils/gerarIdSequencial";
 
 const estadoInicial = {
   razao_social: "",
@@ -27,9 +21,14 @@ const estadoInicial = {
 function CadastrarFornecedor() {
 
   const [fornecedor, setFornecedor] = useState(estadoInicial);
+  const [fornecedores, setFornecedores] = useState([]);
 
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    listarDados("/fornecedores/").then((data) => setFornecedores(data));
+  }, []);
 
   function handleChange(e) {
     setFornecedor({ ...fornecedor, [e.target.name]: e.target.value });
@@ -39,7 +38,11 @@ function CadastrarFornecedor() {
     e.preventDefault();
 
     try {
-      await criarDado("/fornecedores/", { ...fornecedor, id_fornecedor: gerarIdFornecedor() });
+      const fornecedorCriado = await criarDado("/fornecedores/", {
+        ...fornecedor,
+        id_fornecedor: gerarIdSequencial(fornecedores, "id_fornecedor", "FOR"),
+      });
+      setFornecedores((fornecedoresAtuais) => [...fornecedoresAtuais, fornecedorCriado]);
 
       setMensagem("Fornecedor cadastrado com sucesso!");
       setErro("");

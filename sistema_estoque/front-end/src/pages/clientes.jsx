@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -9,9 +10,11 @@ function Clientes() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(false);
   const [temAnterior, setTemAnterior] = useState(false);
+  const [clienteSelecionado, setClienteSelecionado] = useState("");
 
   useEffect(() => {
     setCarregando(true);
+    setClienteSelecionado("");
     api.get(`/clientes/?page=${pagina}`)
       .then((response) => {
         if (Array.isArray(response.data)) {
@@ -31,6 +34,19 @@ function Clientes() {
       .finally(() => setCarregando(false));
   }, [pagina]);
 
+  function alterarClienteSelecionado(event) {
+    setClienteSelecionado(event.target.value);
+  }
+
+  const opcoesClientes = clientes.map((cliente) => ({
+    value: cliente.id_cliente,
+    label: `${cliente.id_cliente} - ${cliente.nome}`,
+  }));
+
+  const clientesFiltrados = clienteSelecionado
+    ? clientes.filter((cliente) => cliente.id_cliente === clienteSelecionado)
+    : clientes;
+
   return (
     <div style={{ color: "white", padding: "30px" }}>
       <h1>Clientes</h1>
@@ -42,6 +58,16 @@ function Clientes() {
 
       {clientes.length > 0 && (
         <>
+          <FormSelectSearch
+            label="Pesquisar cliente"
+            name="clienteSelecionado"
+            value={clienteSelecionado}
+            onChange={alterarClienteSelecionado}
+            options={opcoesClientes}
+            placeholder="Selecione um cliente..."
+            isClearable={true}
+          />
+
           <table border="1" cellPadding="10" style={{ borderCollapse: "collapse", marginTop: "20px", width: "100%" }}>
             <thead>
               <tr>
@@ -51,12 +77,14 @@ function Clientes() {
                 <th>Bairro</th>
                 <th>Possui Fiado</th>
                 <th>Saldo Fiado</th>
+                <th>Data Cadastro</th>
+                <th>Total em Compras</th>
                 <th>Última Compra</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {clientes.map((c) => (
+              {clientesFiltrados.map((c) => (
                 <tr key={c.id_cliente}>
                   <td>{c.id_cliente}</td>
                   <td>{c.nome}</td>
@@ -64,6 +92,8 @@ function Clientes() {
                   <td>{c.bairro}</td>
                   <td>{c.possui_fiado ? "Sim" : "Não"}</td>
                   <td>R$ {parseFloat(c.saldo_fiado).toFixed(2)}</td>
+                  <td>{c.data_cadastro}</td>
+                  <td>R$ {parseFloat(c.total_valor).toFixed(2)}</td>
                   <td>{c.ultima_compra || "—"}</td>
                   <td><Link to={`/clientes/${c.id_cliente}/editar`} style={{ color: "#60a5fa" }}>Editar</Link></td>
                 </tr>

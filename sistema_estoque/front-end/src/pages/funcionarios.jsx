@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import Paginacao from "../components/Paginacao";
+import FormSelectSearch from "../components/FormSelectSearch";
 
 function Funcionarios() {
   const [funcionarios, setFuncionarios] = useState([]);
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [erro, setErro] = useState("");
+  const [funcionarioSelecionado, setFuncionarioSelecionado] = useState("");
 
   const POR_PAGINA = 15;
 
   useEffect(() => {
+    setFuncionarioSelecionado("");
     api.get(`/funcionarios/?page=${pagina}`)
       .then((response) => {
         setErro("");
@@ -25,6 +28,24 @@ function Funcionarios() {
       })
       .catch(() => setErro("Não foi possível carregar os funcionários."));
   }, [pagina]);
+
+  function alterarFuncionarioSelecionado(event) {
+    setFuncionarioSelecionado(event.target.value);
+  }
+
+  function mudarPagina(novaPagina) {
+    setFuncionarioSelecionado("");
+    setPagina(novaPagina);
+  }
+
+  const opcoesFuncionarios = funcionarios.map((funcionario) => ({
+    value: funcionario.id_funcionario,
+    label: `${funcionario.id_funcionario} - ${funcionario.nome}`,
+  }));
+
+  const funcionariosFiltrados = funcionarioSelecionado
+    ? funcionarios.filter((funcionario) => funcionario.id_funcionario === funcionarioSelecionado)
+    : funcionarios;
 
   const thStyle = {
     padding: "10px 14px",
@@ -51,6 +72,16 @@ function Funcionarios() {
         <p>Nenhum funcionário encontrado.</p>
       ) : (
         <>
+          <FormSelectSearch
+            label="Pesquisar funcionario"
+            name="funcionarioSelecionado"
+            value={funcionarioSelecionado}
+            onChange={alterarFuncionarioSelecionado}
+            options={opcoesFuncionarios}
+            placeholder="Selecione um funcionario..."
+            isClearable={true}
+          />
+
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#1f1f2e", borderRadius: "8px" }}>
               <thead>
@@ -67,7 +98,7 @@ function Funcionarios() {
                 </tr>
               </thead>
               <tbody>
-                {funcionarios.map((f) => (
+                {funcionariosFiltrados.map((f) => (
                   <tr key={f.id_funcionario} style={{ backgroundColor: "#1a1a2e" }}>
                     <td style={tdStyle}>{f.id_funcionario}</td>
                     <td style={tdStyle}>{f.nome}</td>
@@ -84,7 +115,7 @@ function Funcionarios() {
             </table>
           </div>
 
-          <Paginacao pagina={pagina} totalPaginas={totalPaginas} setPagina={setPagina} />
+          <Paginacao paginaAtual={pagina} totalPaginas={totalPaginas} onMudarPagina={mudarPagina} />
         </>
       )}
     </div>

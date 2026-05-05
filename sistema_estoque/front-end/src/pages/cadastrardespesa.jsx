@@ -5,12 +5,7 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
-
-function gerarIdDespesa() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `DSP${sufixo}`;
-}
+import { gerarIdSequencial } from "../utils/gerarIdSequencial";
 
 function CadastrarDespesa() {
   const hoje = new Date().toISOString().split("T")[0];
@@ -26,11 +21,13 @@ function CadastrarDespesa() {
   });
 
   const [funcionarios, setFuncionarios] = useState([]);
+  const [despesas, setDespesas] = useState([]);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
   useEffect(() => {
     listarDados("/funcionarios/").then((data) => setFuncionarios(data));
+    listarDados("/despesas/").then((data) => setDespesas(data));
   }, []);
 
   function handleChange(e) {
@@ -49,7 +46,11 @@ function CadastrarDespesa() {
     };
 
     try {
-      await criarDado("/despesas/", { ...payload, id_despesa: gerarIdDespesa() });
+      const despesaCriada = await criarDado("/despesas/", {
+        ...payload,
+        id_despesa: gerarIdSequencial(despesas, "id_despesa", "DESP"),
+      });
+      setDespesas((despesasAtuais) => [...despesasAtuais, despesaCriada]);
       setMensagem("Despesa cadastrada com sucesso!");
       setForm({ funcionario: "", compra: "", data: hoje, categoria: "", descricao: "", valor: "0.00", recorrente: "false" });
     } catch {
