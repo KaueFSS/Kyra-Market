@@ -8,7 +8,7 @@ import { criarDado, listarDados } from "../services/crudService";
 
 function gerarIdDespesa() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const sufixo = Array.from({ length: 7 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  const sufixo = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   return `DSP${sufixo}`;
 }
 

@@ -14,6 +14,14 @@ function gerarIdCompra() {
   return "CMP" + sufixo;
 }
 
+function gerarIdDespesa() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const sufixo = Array.from({ length: 6 }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+  return "DESP" + sufixo;
+}
+
 const estadoInicialCompra = {
   nome: "",
   fornecedor: "",
@@ -64,26 +72,35 @@ function CadastrarCompra() {
   }
 
   function handleChangeItem(e) {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  // se mudou o produto
-  if (name === "produto") {
-    const produtoSelecionado = produtos.find(
-      (p) => p.id_produto == value
-    );
+    if (name === "produto") {
+      const produtoSelecionado = produtos.find(
+        (p) => p.id_produto == value
+      );
 
-    setItemAtual({
-      ...itemAtual,
-      produto: value,
-      preco_unitario: produtoSelecionado?.preco || "",
-    });
-  } else {
-    setItemAtual({ ...itemAtual, [name]: value });
+      setItemAtual({
+        ...itemAtual,
+        produto: value,
+        preco_unitario: produtoSelecionado?.preco || "",
+      });
+    } else {
+      setItemAtual({ ...itemAtual, [name]: value });
+    }
   }
-}
+
   function adicionarItem() {
-    if (!itemAtual.produto || !itemAtual.quantidade_comprada || !itemAtual.preco_unitario) {
+    if (
+      !itemAtual.produto ||
+      !itemAtual.quantidade_comprada ||
+      !itemAtual.preco_unitario
+    ) {
       setErro("Preencha todos os campos do item.");
+      return;
+    }
+
+    if (Number(itemAtual.quantidade_comprada) <= 0) {
+      setErro("Quantidade deve ser maior que 0.");
       return;
     }
 
@@ -95,7 +112,9 @@ function CadastrarCompra() {
   function calcularTotal() {
     return itens.reduce(
       (acc, item) =>
-        acc + item.quantidade_comprada * item.preco_unitario,
+        acc +
+        Number(item.quantidade_comprada) *
+          Number(item.preco_unitario),
       0
     );
   }
@@ -108,37 +127,47 @@ function CadastrarCompra() {
       return;
     }
 
+    if (itens.some(item => Number(item.quantidade_comprada) <= 0)) {
+      setErro("Existe item com quantidade inválida.");
+      return;
+    }
+
     try {
       const total = calcularTotal();
+
       const novaCompra = await criarDado("/compras/", {
         ...compra,
         id_compra: gerarIdCompra(),
         valor_total: total,
       });
 
-        await criarDado("/despesas/", {
-          descricao: `Compra ${novaCompra.id_compra}`,
-          valor: total,
-          data: compra.data_compra,
-          fornecedor: compra.fornecedor,
-          tipo: "Compra",
-        });
-
       for (let item of itens) {
         await criarDado("/itens-compra/", {
-          ...item,
+          produto: item.produto,
+          quantidade: Number(item.quantidade_comprada),
+          valor_unitario: Number(item.preco_unitario),
           compra: novaCompra.id_compra,
         });
       }
+
+      await criarDado("/despesas/", {
+        id_despesa: gerarIdDespesa(),
+        descricao: `Compra ${novaCompra.id_compra}`,
+        valor: total.toFixed(2),
+        data: compra.data_compra,
+        categoria: "Compra",
+        recorrente: false,
+        funcionario: compra.funcionario,
+        compra: novaCompra.id_compra,
+      });
 
       setMensagem("Compra cadastrada com sucesso!");
       setErro("");
       setCompra(estadoInicialCompra);
       setItens([]);
     } catch (err) {
-      console.error(err);
+      console.log("ERRO BACKEND:", JSON.stringify(err.response?.data, null, 2));
       setErro("Erro ao cadastrar compra.");
-      setMensagem("");
     }
   }
 
@@ -228,6 +257,7 @@ function CadastrarCompra() {
           label="Quantidade"
           name="quantidade_comprada"
           type="number"
+          min="1"
           value={itemAtual.quantidade_comprada}
           onChange={handleChangeItem}
         />
