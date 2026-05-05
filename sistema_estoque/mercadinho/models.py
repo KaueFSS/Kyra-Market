@@ -349,6 +349,12 @@ class ItemVenda(models.Model):
     quantidade_vendida = models.PositiveIntegerField(
         verbose_name="Quantidade vendida",
     )
+    preco_unitario = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name="Preco unitario",
+    )
     desconto_aplicado = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -357,7 +363,7 @@ class ItemVenda(models.Model):
         verbose_name="Desconto aplicado",
     )
     subtotal = models.DecimalField(
-        max_digits=100,
+        max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name="Subtotal",
@@ -367,12 +373,6 @@ class ItemVenda(models.Model):
         verbose_name = "Item da venda"
         verbose_name_plural = "Itens da venda"
         ordering = ["venda_id", "produto_id"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["venda", "produto"],
-                name="unique_produto_por_venda",
-            )
-        ]
 
     def __str__(self):
         return f"{self.venda_id} - {self.produto.nome} x{self.quantidade_vendida}"
@@ -479,12 +479,6 @@ class ItemCompra(models.Model):
         verbose_name = "Item da compra"
         verbose_name_plural = "Itens da compra"
         ordering = ["compra_id", "produto_id"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["compra", "produto"],
-                name="unique_produto_por_compra",
-            )
-        ]
 
     def __str__(self):
         return f"{self.compra_id} - {self.produto.nome} x{self.quantidade}"

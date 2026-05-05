@@ -7,6 +7,7 @@ from .views import (
     DespesaViewSet, ItemVendaViewSet, VendaViewSet,
     ClienteViewSet,
     RegistrarVendaView, RegistrarCompraView, PagarFiadoView,
+    LucroMensalView,
 )
 
 router = DefaultRouter()
@@ -26,4 +27,5 @@ urlpatterns = [
     path('registrar-venda/', RegistrarVendaView.as_view(), name='registrar-venda'),
     path('registrar-compra/', RegistrarCompraView.as_view(), name='registrar-compra'),
     path('pagar-fiado/', PagarFiadoView.as_view(), name='pagar-fiado'),
+    path('lucro-mensal/', LucroMensalView.as_view(), name='lucro-mensal'),
 ]

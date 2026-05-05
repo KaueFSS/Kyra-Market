@@ -1,7 +1,8 @@
+import uuid
 from datetime import date
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q, Sum
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -19,18 +20,8 @@ from .serializers import (ClienteSerializer, CompraFornecedorSerializer,
                           VendaSerializer)
 
 
-def gerar_id_sequencial(modelo, campo_id, prefixo):
-    filtro_prefixo = {f"{campo_id}__startswith": prefixo}
-    ids = modelo.objects.filter(**filtro_prefixo).values_list(campo_id, flat=True)
-    maior_numero = 0
-
-    for id_atual in ids:
-        sufixo = str(id_atual)[len(prefixo):]
-        if sufixo.isdigit():
-            maior_numero = max(maior_numero, int(sufixo))
-
-    tamanho_sufixo = max(1, 10 - len(prefixo))
-    return f"{prefixo}{str(maior_numero + 1).zfill(tamanho_sufixo)}"
+def gerar_id(prefix):
+    return f"{prefix}{uuid.uuid4().hex[:8].upper()}"
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
@@ -88,20 +79,22 @@ class CompraFornecedorViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            for item in compra.itens.select_related('produto__estoque').all():
-                try:
-                    estoque = item.produto.estoque
-                except Estoque.DoesNotExist:
-                    raise Exception(f"Produto '{item.produto.nome}' não tem estoque cadastrado.")
-                estoque.quantidade_atual += item.quantidade
-                estoque.dt_ultima_entrada = date.today()
-                estoque.save()
+        try:
+            with transaction.atomic():
+                for item in compra.itens.select_related('produto').all():
+                    try:
+                        estoque = Estoque.objects.select_for_update().get(produto=item.produto)
+                    except Estoque.DoesNotExist:
+                        raise ValueError(f"Produto '{item.produto.nome}' não tem estoque cadastrado.")
+                    estoque.quantidade_atual += item.quantidade
+                    estoque.dt_ultima_entrada = date.today()
+                    estoque.save()
 
-            compra.entregue = True
-            compra.status = "Entregue"
-            compra.data_entrega = date.today()
-            compra.save()
+                compra.entregue = True
+                compra.data_entrega = date.today()
+                compra.save()
+        except ValueError as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(compra)
         return Response(serializer.data)
@@ -206,8 +199,18 @@ class ItemVendaViewSet(viewsets.ModelViewSet):
 
 
 class VendaViewSet(viewsets.ModelViewSet):
-    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens__produto').all()
+    queryset = Venda.objects.select_related('funcionario', 'cliente').prefetch_related('itens').all()
     serializer_class = VendaSerializer
+
+    @action(detail=False, methods=['get'], url_path='hoje')
+    def hoje(self, request):
+        hoje = date.today()
+        vendas_hoje = self.get_queryset().filter(data_venda=hoje)
+        total = vendas_hoje.aggregate(t=Sum('itens__subtotal'))['t'] or 0
+        return Response({
+            'count': vendas_hoje.count(),
+            'total': float(total),
+        })
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -220,6 +223,18 @@ class ClienteViewSet(viewsets.ModelViewSet):
         if possui_fiado is not None:
             queryset = queryset.filter(possui_fiado=possui_fiado == 'True')
         return queryset
+
+    @action(detail=False, methods=['get'], url_path='resumo')
+    def resumo(self, request):
+        """Retorna totais agregados sem precisar paginar todos os clientes."""
+        total_clientes = Cliente.objects.count()
+        fiado_qs = Cliente.objects.filter(possui_fiado=True)
+        total_fiado = fiado_qs.aggregate(t=Sum('saldo_fiado'))['t'] or 0
+        return Response({
+            'total_clientes': total_clientes,
+            'count_fiado': fiado_qs.count(),
+            'total_fiado': float(total_fiado),
+        })
 
     @action(detail=True, methods=['get'])
     def historico(self, request, pk=None):
@@ -264,8 +279,7 @@ class RegistrarVendaView(APIView):
                     cliente = Cliente.objects.get(pk=dados['cliente'])
 
                 venda = Venda.objects.create(
-                    id_venda=gerar_id_sequencial(Venda, 'id_venda', 'VND'),
-                    nome=dados.get('nome', ''),
+                    id_venda=gerar_id('VND'),
                     data_venda=dados['data_venda'],
                     hora=dados['hora'],
                     forma_pagamento=dados['forma_pagamento'],
@@ -276,10 +290,10 @@ class RegistrarVendaView(APIView):
                 total_venda = 0
 
                 for item_data in dados['itens']:
-                    produto = Produto.objects.select_for_update().get(pk=item_data['produto'])
+                    produto = Produto.objects.get(pk=item_data['produto'])
 
                     try:
-                        estoque = produto.estoque
+                        estoque = Estoque.objects.select_for_update().get(produto=produto)
                     except Estoque.DoesNotExist:
                         raise ValueError(f"Produto '{produto.nome}' não tem estoque cadastrado.")
 
@@ -294,10 +308,16 @@ class RegistrarVendaView(APIView):
                         - item_data['desconto_aplicado']
                     )
 
+                    if subtotal < 0:
+                        raise ValueError(
+                            f"Desconto maior que o valor do item '{produto.nome}': subtotal negativo."
+                        )
+
                     ItemVenda.objects.create(
                         venda=venda,
                         produto=produto,
                         quantidade_vendida=item_data['quantidade_vendida'],
+                        preco_unitario=item_data['preco_unitario'],
                         desconto_aplicado=item_data['desconto_aplicado'],
                         subtotal=subtotal,
                     )
@@ -348,8 +368,7 @@ class RegistrarCompraView(APIView):
                 funcionario = Funcionario.objects.get(pk=dados['funcionario'])
 
                 compra = CompraFornecedor.objects.create(
-                    id_compra=gerar_id_sequencial(CompraFornecedor, 'id_compra', 'CMP'),
-                    nome=dados.get('nome', ''),
+                    id_compra=gerar_id('CMP'),
                     fornecedor=fornecedor,
                     funcionario=funcionario,
                     data_compra=dados['data_compra'],
@@ -361,7 +380,7 @@ class RegistrarCompraView(APIView):
                 )
 
                 for item_data in dados['itens']:
-                    produto = Produto.objects.select_for_update().get(pk=item_data['produto'])
+                    produto = Produto.objects.get(pk=item_data['produto'])
 
                     ItemCompra.objects.create(
                         compra=compra,
@@ -372,24 +391,13 @@ class RegistrarCompraView(APIView):
 
                     if dados['entregue']:
                         try:
-                            estoque = produto.estoque
+                            estoque = Estoque.objects.select_for_update().get(produto=produto)
                         except Estoque.DoesNotExist:
                             raise ValueError(f"Produto '{produto.nome}' não tem estoque cadastrado.")
 
                         estoque.quantidade_atual += item_data['quantidade']
                         estoque.dt_ultima_entrada = dados.get('data_entrega') or dados['data_compra']
                         estoque.save()
-
-                Despesa.objects.create(
-                    id_despesa=gerar_id_sequencial(Despesa, 'id_despesa', 'DESP'),
-                    funcionario=funcionario,
-                    compra=compra,
-                    data=dados['data_compra'],
-                    categoria='Compra',
-                    descricao=f"Compra {compra.id_compra}",
-                    valor=dados['valor_total'],
-                    recorrente=False,
-                )
 
         except (Fornecedor.DoesNotExist, Funcionario.DoesNotExist, Produto.DoesNotExist) as e:
             return Response({'erro': str(e)}, status=status.HTTP_404_NOT_FOUND)
@@ -400,6 +408,48 @@ class RegistrarCompraView(APIView):
             CompraFornecedor.objects.prefetch_related('itens').get(pk=compra.pk)
         )
         return Response(compra_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class LucroMensalView(APIView):
+    """
+    GET /api/lucro-mensal/
+
+    Retorna receita, custos e lucro líquido do mês corrente.
+    Receita  = soma dos subtotais dos itens de venda do mês
+    Despesas = soma das despesas do mês
+    Compras  = soma das compras entregues no mês
+    """
+
+    def get(self, request):
+        hoje = date.today()
+        ano, mes = hoje.year, hoje.month
+
+        receita = ItemVenda.objects.filter(
+            venda__data_venda__year=ano,
+            venda__data_venda__month=mes,
+        ).aggregate(t=Sum('subtotal'))['t'] or 0
+
+        despesas = Despesa.objects.filter(
+            data__year=ano,
+            data__month=mes,
+        ).aggregate(t=Sum('valor'))['t'] or 0
+
+        compras = CompraFornecedor.objects.filter(
+            Q(entregue=True) & (
+                Q(data_entrega__year=ano, data_entrega__month=mes) |
+                Q(data_entrega__isnull=True, data_compra__year=ano, data_compra__month=mes)
+            )
+        ).aggregate(t=Sum('valor_total'))['t'] or 0
+
+        lucro = float(receita) - float(despesas) - float(compras)
+
+        return Response({
+            'receita': float(receita),
+            'despesas': float(despesas),
+            'compras': float(compras),
+            'lucro': lucro,
+            'mes': f"{mes:02d}/{ano}",
+        })
 
 
 class PagarFiadoView(APIView):
