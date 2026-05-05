@@ -5,7 +5,6 @@ const secoes = [
     titulo: "Visão Geral",
     itens: [
       { label: "Dashboard", to: "/dashboard" },
-      { label: "Relatórios", to: "/relatorios" },
     ],
   },
   {
