@@ -1,12 +1,9 @@
 function MensagemErro({ mensagem }) {
-  if (!mensagem) {
-    return null;
-  }
-
+  if (!mensagem) return null;
   return (
-    <p style={{ color: "red", fontWeight: "bold" }}>
-      {mensagem}
-    </p>
+    <div className="alert-msg">
+      ⚠️ {mensagem}
+    </div>
   );
 }
 

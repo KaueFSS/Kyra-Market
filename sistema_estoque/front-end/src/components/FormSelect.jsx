@@ -1,24 +1,19 @@
 function FormSelect({ label, name, value, onChange, options = [], required = false }) {
   return (
-    <div style={{ marginBottom: "15px" }}>
-      <label>{label}</label>
-      <br />
-
+    <div className="form-group">
+      {label && (
+        <label className="form-label">
+          {label} {required && <span style={{ color: "var(--accent-red)" }}>*</span>}
+        </label>
+      )}
       <select
         name={name}
         value={value}
         onChange={onChange}
         required={required}
-        style={{
-          padding: "8px",
-          width: "340px",
-          borderRadius: "6px",
-          border: "1px solid #ccc",
-          marginTop: "5px",
-        }}
+        className="form-select"
       >
         <option value="">Selecione...</option>
-
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

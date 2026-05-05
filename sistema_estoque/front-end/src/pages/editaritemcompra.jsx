@@ -5,6 +5,7 @@ import FormInput from "../components/FormInput";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
+import { formatarMoeda } from "../utils/formatadores";
 
 function EditarItemCompra() {
   const { id } = useParams();
@@ -36,34 +37,36 @@ function EditarItemCompra() {
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   const total = (parseInt(form.quantidade) || 0) * (parseFloat(form.valor_unitario) || 0);
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Item de Compra</h1>
-      <p style={{ color: "#aaa" }}>Compra: <strong style={{ color: "white" }}>{form.compra}</strong> | Produto: <strong style={{ color: "white" }}>{form.produto_nome || form.produto}</strong></p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Item de Compra</h1>
+      <p className="page-subtitle">
+        Compra: <strong style={{ color: "var(--text-primary)" }}>{form.compra}</strong>
+        {" | "}
+        Produto: <strong style={{ color: "var(--text-primary)" }}>{form.produto_nome || form.produto}</strong>
+      </p>
 
       <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
-        <FormInput label="Quantidade" name="quantidade" type="number" min="1" value={form.quantidade} onChange={handleChange} required />
+      <form onSubmit={handleSubmit} className="form-container">
+        <FormInput label="Quantidade" name="quantidade" type="number" value={form.quantidade} onChange={handleChange} required />
         <FormInput label="Valor Unitário (R$)" name="valor_unitario" type="number" step="0.01" value={form.valor_unitario} onChange={handleChange} required />
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>Total</label><br />
-          <input type="text" value={`R$ ${total.toFixed(2)}`} disabled
-            style={{ padding: "8px", width: "270px", borderRadius: "6px", border: "1px solid #555", marginTop: "5px", backgroundColor: "#2a2a3e", color: "#4ade80", fontWeight: "bold" }}
-          />
+        <div className="form-group">
+          <label className="form-label">Total calculado</label>
+          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--accent-green)", fontWeight: 600, maxWidth: 400 }}>
+            {formatarMoeda(total)}
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/itens-compra")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/itens-compra")}>← Voltar</button>
         </div>
       </form>
     </div>

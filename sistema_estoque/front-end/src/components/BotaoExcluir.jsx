@@ -1,18 +1,7 @@
-function BotaoExcluir({ onClick }) {
+function BotaoExcluir({ onClick, texto = "Excluir" }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: "8px 12px",
-        backgroundColor: "#d9534f",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        cursor: "pointer",
-      }}
-    >
-      Excluir
+    <button type="button" className="btn btn-danger btn-sm" onClick={onClick}>
+      🗑️ {texto}
     </button>
   );
 }

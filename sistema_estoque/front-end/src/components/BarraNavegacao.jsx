@@ -1,67 +1,70 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+import api from "../services/api";
+import { cachedGet, prefetch } from "../utils/apiCache";
 
 const links = [
-  { label: "Home", to: "/" },
-  { label: "Dashboard", to: "/dashboard" },
-  { label: "Vendas", to: "/vendas" },
-  { label: "Nova Venda", to: "/vendas/novo" },
-  { label: "Compras", to: "/compras" },
-  { label: "Nova Compra", to: "/compras/novo" },
-  { label: "Produtos", to: "/produtos" },
-  { label: "Novo Produto", to: "/produtos/novo" },
-  { label: "Estoques", to: "/estoques" },
-  { label: "Clientes", to: "/clientes" },
-  { label: "Novo Cliente", to: "/clientes/novo" },
-  { label: "Funcionarios", to: "/funcionarios" },
-  { label: "Novo Funcionario", to: "/funcionarios/novo" },
-  { label: "Fornecedores", to: "/fornecedores" },
-  { label: "Novo Fornecedor", to: "/fornecedores/novo" },
-  { label: "Despesas", to: "/despesas" },
-  { label: "Nova Despesa", to: "/despesas/novo" },
+  { label: "Home",          to: "/",             icon: "🏠", end: true,  prefetchUrl: null },
+  { label: "Vendas",        to: "/vendas",        icon: "🛒", end: false, prefetchUrl: "/vendas/?page=1" },
+  { label: "Compras",       to: "/compras",       icon: "📦", end: false, prefetchUrl: "/compras/?page=1" },
+  { label: "Produtos",      to: "/produtos",      icon: "🏷️", end: false, prefetchUrl: "/produtos/?page=1" },
+  { label: "Estoques",      to: "/estoques",      icon: "📋", end: false, prefetchUrl: "/estoques/?page=1" },
+  { label: "Clientes",      to: "/clientes",      icon: "👥", end: false, prefetchUrl: "/clientes/?page=1" },
+  { label: "Funcionários",  to: "/funcionarios",  icon: "👷", end: false, prefetchUrl: "/funcionarios/?page=1" },
+  { label: "Fornecedores",  to: "/fornecedores",  icon: "🚚", end: false, prefetchUrl: "/fornecedores/?page=1" },
+  { label: "Despesas",      to: "/despesas",      icon: "💸", end: false, prefetchUrl: "/despesas/?page=1" },
 ];
 
-function BarraNavegacao() {
+function BarraNavegacao({ onOpenSearch }) {
+  const [usuario, setUsuario] = useState(null);
+
+  useEffect(() => {
+    cachedGet(api, "/funcionarios/FUNC004/")
+      .then((res) => setUsuario(res.data))
+      .catch(() => {});
+  }, []);
+
   return (
-    <nav
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "8px",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "12px 18px",
-        backgroundColor: "#111827",
-        borderBottom: "1px solid #2a2a3e",
-        boxShadow: "0 8px 20px rgba(0, 0, 0, 0.25)",
-      }}
-    >
-      {links.map((link) => (
-        <NavLink
-          key={link.to}
-          to={link.to}
-          end
-          style={({ isActive }) => ({
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "34px",
-            padding: "7px 12px",
-            borderRadius: "8px",
-            border: isActive ? "1px solid #60a5fa" : "1px solid #374151",
-            backgroundColor: isActive ? "#1f6feb" : "#1f2937",
-            color: "white",
-            fontSize: "14px",
-            lineHeight: "1",
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-          })}
-        >
-          {link.label}
-        </NavLink>
-      ))}
+    <nav className="nav-bar">
+      <Link to="/" className="nav-brand">
+        <div className="nav-brand-icon">
+  <img src="/icons/icon-mercado.png" alt="Mercadinho" style={{ width: 45, height: 45, objectFit: "contain", borderRadius: 4 }} />
+</div>
+        Mercadinho
+      </Link>
+
+      <div className="nav-links">
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.end}
+            className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+            onMouseEnter={() => link.prefetchUrl && prefetch(link.prefetchUrl)}
+          >
+            <span>{link.icon}</span>
+            {link.label}
+          </NavLink>
+        ))}
+      </div>
+
+      {onOpenSearch && (
+        <button className="nav-search-btn" onClick={onOpenSearch} title="Busca global (Ctrl+K)">
+          🔍 <span className="nav-search-hint">Ctrl+K</span>
+        </button>
+      )}
+
+      {usuario && (
+        <div className="nav-user">
+          <div className="nav-user-avatar">👤</div>
+          <div className="nav-user-info">
+            <span className="nav-user-greeting">
+              Olá, <strong>{usuario.nome.split(" ")[0]}</strong>
+            </span>
+            <span className="nav-user-role">{usuario.cargo || "Admin"}</span>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

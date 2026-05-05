@@ -5,8 +5,10 @@ import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
-import MensagemSucesso from "../components/MensagemSucesso";
 import { listarDados } from "../services/crudService";
+import { useFormShortcuts } from "../utils/useFormShortcuts";
+import { invalidateCache } from "../utils/apiCache";
+import { showToast } from "../utils/toast";
 
 function EditarVenda() {
   const { id } = useParams();
@@ -14,8 +16,8 @@ function EditarVenda() {
   const [form, setForm] = useState(null);
   const [funcionarios, setFuncionarios] = useState([]);
   const [clientes, setClientes] = useState([]);
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  useFormShortcuts({ onSubmit: salvar, onCancel: () => navigate("/vendas") });
 
   useEffect(() => {
     api.get(`/vendas/${id}/`).then((res) => setForm(res.data));
@@ -27,29 +29,28 @@ function EditarVenda() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function salvar() {
     try {
       await api.patch(`/vendas/${id}/`, { ...form, cliente: form.cliente || null });
-      setMensagem("Venda atualizada com sucesso!");
+      invalidateCache("/vendas/?page=1");
+      showToast("Venda atualizada com sucesso!", "success");
+      setTimeout(() => navigate(`/vendas?highlight=${id}`), 900);
       setErro("");
     } catch {
       setErro("Erro ao atualizar venda.");
-      setMensagem("");
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Venda</h1>
-      <p style={{ color: "#aaa" }}>ID: {id}</p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Venda</h1>
+      <p className="page-subtitle">ID: {id}</p>
 
-      <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormInput label="Nome da Venda" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Venda Balcão - Manhã" />
         <FormInput label="Data da Venda" name="data_venda" type="date" value={form.data_venda} onChange={handleChange} required />
         <FormInput label="Hora" name="hora" type="time" value={form.hora} onChange={handleChange} required />
@@ -69,11 +70,9 @@ function EditarVenda() {
           options={[{ value: "", label: "Sem cliente" }, ...clientes.map((c) => ({ value: c.id_cliente, label: c.nome }))]}
         />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/vendas")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/vendas")}>← Voltar</button>
         </div>
       </form>
     </div>

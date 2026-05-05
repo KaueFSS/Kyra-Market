@@ -1,5 +1,43 @@
 import Select from "react-select";
 
+const estilosCustomizados = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "var(--bg-input, #1a1d2e)",
+    borderColor: state.isFocused ? "#3b82f6" : "rgba(255,255,255,0.12)",
+    boxShadow: state.isFocused ? "0 0 0 3px rgba(59,130,246,0.15)" : "none",
+    minHeight: "40px",
+    borderRadius: "8px",
+    color: "white",
+    width: "100%",
+    maxWidth: "400px",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: "0 12px",
+  }),
+  singleValue: (base) => ({ ...base, color: "white" }),
+  input: (base) => ({ ...base, color: "white" }),
+  placeholder: (base) => ({ ...base, color: "#8b8fa8" }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "#1a1d2e",
+    border: "1px solid rgba(255,255,255,0.1)",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+    zIndex: 9999,
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#252840" : "#1a1d2e",
+    color: state.isFocused ? "white" : "#8b8fa8",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+  }),
+  clearIndicator: (base) => ({ ...base, color: "#8b8fa8", cursor: "pointer" }),
+  dropdownIndicator: (base) => ({ ...base, color: "#8b8fa8" }),
+  indicatorSeparator: (base) => ({ ...base, backgroundColor: "rgba(255,255,255,0.1)" }),
+};
+
 function FormSelectSearch({
   label,
   name,
@@ -10,56 +48,8 @@ function FormSelectSearch({
   isClearable = false,
   required = false,
 }) {
-  const estilosCustomizados = {
-    control: (base, state) => ({
-      ...base,
-      backgroundColor: "#3b3b3b",
-      borderColor: state.isFocused ? "#ffffff" : "#bfbfbf",
-      boxShadow: "none",
-      minHeight: "44px",
-      height: "44px",
-      borderRadius: "8px",
-      color: "white",
-      width: "100%",
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      height: "44px",
-      padding: "0 12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "white",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "white",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#ffffff",
-    }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: "#3b3b3b",
-      color: "white",
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isFocused ? "#94b6ff" : "#3b3b3b",
-      color: "white",
-      cursor: "pointer",
-    }),
-  };
+  const opcaoSelecionada = options.find((option) => option.value === value) || null;
 
-  //busca a opção que ja foi selecionada
-  const opcaoSelecionada =
-    options.find((option) => option.value === value) || null;
-
-  //atribui sua opção ao valor 
   function handleSelectChange(opcaoSelecionada) {
     onChange({
       target: {
@@ -69,29 +59,13 @@ function FormSelectSearch({
     });
   }
 
-    return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: "340px",
-        margin: "0 auto 20px auto",
-        textAlign: "center",
-        fontSize: 14,
-      }}
-    >
+  return (
+    <div className="form-group">
       {label && (
-        <label
-          style={{
-            display: "block",
-            marginBottom: "8px",
-            color: "white",
-            fontSize: 18,
-          }}
-        >
-          {label} {required && "*"}
+        <label className="form-label">
+          {label} {required && <span style={{ color: "var(--accent-red)" }}>*</span>}
         </label>
       )}
-
       <Select
         options={options}
         value={opcaoSelecionada}

@@ -1,61 +1,27 @@
-function FiltroData({
-  dataInicial,
-  dataFinal,
-  setDataInicial,
-  setDataFinal,
-  limparFiltro,
-}) {
+function FiltroData({ dataInicial, dataFinal, setDataInicial, setDataFinal, limparFiltro }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "10px",
-        alignItems: "end",
-        marginTop: "20px",
-        marginBottom: "20px",
-        flexWrap: "wrap",
-      }}
-    >
-      <div>
-        <label>Data inicial</label>
-        <br />
+    <div className="filter-date" style={{ marginBottom: "16px" }}>
+      <div className="form-group" style={{ marginBottom: 0 }}>
+        <label className="form-label">Data inicial</label>
         <input
           type="date"
           value={dataInicial}
-          onChange={(event) => setDataInicial(event.target.value)}
-          style={{
-            padding: "8px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
+          onChange={(e) => setDataInicial(e.target.value)}
+          className="form-input"
+          style={{ maxWidth: "180px" }}
         />
       </div>
-
-      <div>
-        <label>Data final</label>
-        <br />
+      <div className="form-group" style={{ marginBottom: 0 }}>
+        <label className="form-label">Data final</label>
         <input
           type="date"
           value={dataFinal}
-          onChange={(event) => setDataFinal(event.target.value)}
-          style={{
-            padding: "8px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
+          onChange={(e) => setDataFinal(e.target.value)}
+          className="form-input"
+          style={{ maxWidth: "180px" }}
         />
       </div>
-
-      <button
-        type="button"
-        onClick={limparFiltro}
-        style={{
-          padding: "9px 14px",
-          borderRadius: "6px",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
+      <button type="button" className="btn btn-secondary btn-sm" onClick={limparFiltro} style={{ alignSelf: "flex-end" }}>
         Limpar filtro
       </button>
     </div>

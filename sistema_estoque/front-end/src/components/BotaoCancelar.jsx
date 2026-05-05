@@ -1,19 +1,7 @@
-function BotaoCancelar({ onClick }) {
+function BotaoCancelar({ texto = "Cancelar", onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: "8px 12px",
-        backgroundColor: "#6c757d",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        cursor: "pointer",
-        marginLeft: "8px",
-      }}
-    >
-      Cancelar
+    <button type="button" className="btn btn-secondary" onClick={onClick}>
+      {texto}
     </button>
   );
 }

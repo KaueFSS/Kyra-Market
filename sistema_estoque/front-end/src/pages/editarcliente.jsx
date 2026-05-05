@@ -4,66 +4,90 @@ import api from "../services/api";
 import FormInput from "../components/FormInput";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
-import MensagemSucesso from "../components/MensagemSucesso";
+import { formatarMoeda } from "../utils/formatadores";
+import { mascaraTelefone } from "../utils/mascaras";
+import { useFormShortcuts } from "../utils/useFormShortcuts";
+import { invalidateCache } from "../utils/apiCache";
+import { showToast } from "../utils/toast";
+
+function validar(f) {
+  const erros = {};
+  if (!f.nome?.trim()) erros.nome = "Nome é obrigatório.";
+  if (f.telefone && f.telefone.replace(/\D/g,"").length < 10) erros.telefone = "Telefone incompleto.";
+  return erros;
+}
 
 function EditarCliente() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState(null);
-  const [mensagem, setMensagem] = useState("");
-  const [erro, setErro] = useState("");
+  const [form, setForm]     = useState(null);
+  const [erros, setErros]   = useState({});
+  const [erro, setErro]     = useState("");
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     api.get(`/clientes/${id}/`).then((res) => setForm(res.data));
   }, [id]);
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let val = name === "telefone" ? mascaraTelefone(value) : value;
+    setForm(prev => ({ ...prev, [name]: val }));
+    if (erros[name]) setErros(prev => ({ ...prev, [name]: "" }));
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function salvar() {
+    const e = validar(form);
+    if (Object.keys(e).length) { setErros(e); return; }
+    setSalvando(true);
     try {
       await api.patch(`/clientes/${id}/`, {
-        nome: form.nome,
-        telefone: form.telefone,
-        bairro: form.bairro,
-        data_cadastro: form.data_cadastro,
+        nome: form.nome, telefone: form.telefone,
+        bairro: form.bairro, data_cadastro: form.data_cadastro,
       });
-      setMensagem("Cliente atualizado com sucesso!");
-      setErro("");
+      invalidateCache("/clientes/?page=1");
+      showToast("Cliente atualizado com sucesso!", "success");
+      setTimeout(() => navigate(`/clientes?highlight=${id}`), 900);
     } catch {
       setErro("Erro ao atualizar cliente.");
-      setMensagem("");
+    } finally {
+      setSalvando(false);
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  function handleSubmit(e) { e.preventDefault(); salvar(); }
+
+  useFormShortcuts({ onSubmit: salvar, onCancel: () => navigate("/clientes") });
+
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Cliente</h1>
-      <p style={{ color: "#aaa" }}>ID: {id}</p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Cliente</h1>
+      <p className="page-subtitle">ID: {id}</p>
 
-      <MensagemSucesso mensagem={mensagem} />
-      <MensagemErro mensagem={erro} />
-
-      <div style={{ background: "#1f1f2e", padding: "12px 16px", borderRadius: "8px", marginBottom: "20px" }}>
-        <p style={{ margin: 0, color: "#aaa", fontSize: "14px" }}>Saldo Fiado atual: <strong style={{ color: form.saldo_fiado > 0 ? "#f87171" : "#4ade80" }}>R$ {parseFloat(form.saldo_fiado).toFixed(2)}</strong></p>
-        <p style={{ margin: "4px 0 0", color: "#aaa", fontSize: "14px" }}>Total em compras: <strong style={{ color: "white" }}>R$ {parseFloat(form.total_valor).toFixed(2)}</strong></p>
+      <div className="card" style={{ maxWidth: 400, marginBottom: 20 }}>
+        <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+          Saldo Fiado: <strong style={{ color: form.saldo_fiado > 0 ? "var(--accent-purple)" : "var(--accent-green)" }}>
+            {formatarMoeda(form.saldo_fiado)}
+          </strong>
+        </p>
+        <p style={{ margin: "6px 0 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+          Total em compras: <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(form.total_valor)}</strong>
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <FormInput label="Nome" name="nome" value={form.nome} onChange={handleChange} required />
-        <FormInput label="Telefone" name="telefone" value={form.telefone || ""} onChange={handleChange} placeholder="Ex: 21999999999" />
+      <MensagemErro mensagem={erro} />
+
+      <form onSubmit={handleSubmit} className="form-container">
+        <FormInput label="Nome" name="nome" value={form.nome} onChange={handleChange} required error={erros.nome} />
+        <FormInput label="Telefone" name="telefone" value={form.telefone || ""} onChange={handleChange} placeholder="(21) 99999-9999" error={erros.telefone} hint="Formatado automaticamente" />
         <FormInput label="Bairro" name="bairro" value={form.bairro || ""} onChange={handleChange} />
         <FormInput label="Data de Cadastro" name="data_cadastro" type="date" value={form.data_cadastro} onChange={handleChange} required />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-          <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/clientes")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+        <div className="form-actions">
+          <BotaoSalvar texto={salvando ? "Salvando…" : "Salvar Alterações"} />
+          <button type="button" className="btn btn-back" onClick={() => navigate("/clientes")}>← Voltar</button>
         </div>
       </form>
     </div>

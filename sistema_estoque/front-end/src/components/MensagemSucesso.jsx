@@ -1,12 +1,9 @@
 function MensagemSucesso({ mensagem }) {
-  if (!mensagem) {
-    return null;
-  }
-
+  if (!mensagem) return null;
   return (
-    <p style={{ color: "lightgreen", fontWeight: "bold" }}>
-      {mensagem}
-    </p>
+    <div className="success-msg">
+      ✅ {mensagem}
+    </div>
   );
 }
 

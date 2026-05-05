@@ -5,8 +5,10 @@ import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
-import MensagemSucesso from "../components/MensagemSucesso";
 import { listarDados } from "../services/crudService";
+import { useFormShortcuts } from "../utils/useFormShortcuts";
+import { invalidateCache } from "../utils/apiCache";
+import { showToast } from "../utils/toast";
 
 function EditarCompra() {
   const { id } = useParams();
@@ -14,8 +16,8 @@ function EditarCompra() {
   const [form, setForm] = useState(null);
   const [fornecedores, setFornecedores] = useState([]);
   const [funcionarios, setFuncionarios] = useState([]);
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  useFormShortcuts({ onSubmit: salvar, onCancel: () => navigate("/compras") });
 
   useEffect(() => {
     api.get(`/compras/${id}/`).then((res) => setForm({ ...res.data, entregue: String(res.data.entregue) }));
@@ -27,8 +29,7 @@ function EditarCompra() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function salvar() {
     try {
       await api.patch(`/compras/${id}/`, {
         nome: form.nome,
@@ -41,25 +42,25 @@ function EditarCompra() {
         nota_fiscal: form.nota_fiscal,
         valor_total: form.valor_total,
       });
-      setMensagem("Compra atualizada com sucesso!");
+      invalidateCache("/compras/?page=1");
+      showToast("Compra atualizada com sucesso!", "success");
+      setTimeout(() => navigate(`/compras?highlight=${id}`), 900);
       setErro("");
     } catch {
       setErro("Erro ao atualizar compra.");
-      setMensagem("");
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Compra</h1>
-      <p style={{ color: "#aaa" }}>ID: {id}</p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Compra</h1>
+      <p className="page-subtitle">ID: {id}</p>
 
-      <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormInput label="Nome da Compra" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Reposição de Laticínios" />
         <FormSelect label="Fornecedor" name="fornecedor" value={form.fornecedor} onChange={handleChange}
           options={fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))}
@@ -78,11 +79,9 @@ function EditarCompra() {
         <FormInput label="Nota Fiscal" name="nota_fiscal" value={form.nota_fiscal || ""} onChange={handleChange} />
         <FormInput label="Valor Total (R$)" name="valor_total" type="number" step="0.01" value={form.valor_total} onChange={handleChange} required />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/compras")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/compras")}>← Voltar</button>
         </div>
       </form>
     </div>

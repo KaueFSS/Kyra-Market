@@ -5,14 +5,16 @@ import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
-import MensagemSucesso from "../components/MensagemSucesso";
+import { useFormShortcuts } from "../utils/useFormShortcuts";
+import { invalidateCache } from "../utils/apiCache";
+import { showToast } from "../utils/toast";
 
 function EditarFuncionario() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  useFormShortcuts({ onSubmit: salvar, onCancel: () => navigate("/funcionarios") });
 
   useEffect(() => {
     api.get(`/funcionarios/${id}/`).then((res) => setForm({ ...res.data, ativo: String(res.data.ativo) }));
@@ -22,29 +24,28 @@ function EditarFuncionario() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function salvar() {
     try {
       await api.patch(`/funcionarios/${id}/`, { ...form, ativo: form.ativo === "true" });
-      setMensagem("Funcionário atualizado com sucesso!");
+      invalidateCache("/funcionarios/?page=1");
+      showToast("Funcionário atualizado com sucesso!", "success");
+      setTimeout(() => navigate(`/funcionarios?highlight=${id}`), 900);
       setErro("");
     } catch {
       setErro("Erro ao atualizar funcionário.");
-      setMensagem("");
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Funcionário</h1>
-      <p style={{ color: "#aaa" }}>ID: {id}</p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Funcionário</h1>
+      <p className="page-subtitle">ID: {id}</p>
 
-      <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormInput label="Nome" name="nome" value={form.nome} onChange={handleChange} required />
         <FormInput label="Cargo" name="cargo" value={form.cargo} onChange={handleChange} required />
         <FormInput label="Data de Admissão" name="data_admissao" type="date" value={form.data_admissao} onChange={handleChange} required />
@@ -57,11 +58,9 @@ function EditarFuncionario() {
           options={[{ value: "true", label: "Sim" }, { value: "false", label: "Não" }]}
         />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/funcionarios")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/funcionarios")}>← Voltar</button>
         </div>
       </form>
     </div>

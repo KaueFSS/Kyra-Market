@@ -1,9 +1,11 @@
-function FormInput({ label, name, value, onChange, type = "text", required = false, placeholder = "" }) {
+function FormInput({ label, name, value, onChange, type = "text", required = false, placeholder = "", step, error, hint }) {
   return (
-    <div style={{ marginBottom: "15px" }}>
-      <label>{label}</label>
-      <br />
-
+    <div className="form-group">
+      {label && (
+        <label className="form-label">
+          {label} {required && <span style={{ color: "var(--accent-red)" }}>*</span>}
+        </label>
+      )}
       <input
         type={type}
         name={name}
@@ -11,14 +13,11 @@ function FormInput({ label, name, value, onChange, type = "text", required = fal
         onChange={onChange}
         required={required}
         placeholder={placeholder}
-        style={{
-          padding: "8px",
-          width: "320px",
-          borderRadius: "6px",
-          border: "1px solid #ccc",
-          marginTop: "5px",
-        }}
+        step={step}
+        className={`form-input${error ? " form-input-error" : ""}`}
       />
+      {error && <span className="form-field-error">{error}</span>}
+      {hint && !error && <span className="form-field-hint">{hint}</span>}
     </div>
   );
 }

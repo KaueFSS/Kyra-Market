@@ -1,20 +1,9 @@
 import { useNavigate } from "react-router-dom";
 
-function BotaoVoltar({ texto = "Voltar" }) {
+function BotaoVoltar({ texto = "← Voltar" }) {
   const navigate = useNavigate();
-
   return (
-    <button
-      type="button"
-      onClick={() => navigate(-1)}
-      style={{
-        padding: "8px 14px",
-        borderRadius: "6px",
-        border: "none",
-        cursor: "pointer",
-        marginBottom: "20px",
-      }}
-    >
+    <button type="button" className="btn btn-back" onClick={() => navigate(-1)}>
       {texto}
     </button>
   );

@@ -5,16 +5,18 @@ import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
-import MensagemSucesso from "../components/MensagemSucesso";
 import { listarDados } from "../services/crudService";
+import { useFormShortcuts } from "../utils/useFormShortcuts";
+import { invalidateCache } from "../utils/apiCache";
+import { showToast } from "../utils/toast";
 
 function EditarDespesa() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [funcionarios, setFuncionarios] = useState([]);
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  useFormShortcuts({ onSubmit: salvar, onCancel: () => navigate("/despesas") });
 
   useEffect(() => {
     api.get(`/despesas/${id}/`).then((res) => setForm({ ...res.data, recorrente: String(res.data.recorrente) }));
@@ -25,29 +27,28 @@ function EditarDespesa() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function salvar() {
     try {
       await api.patch(`/despesas/${id}/`, { ...form, recorrente: form.recorrente === "true" });
-      setMensagem("Despesa atualizada com sucesso!");
+      invalidateCache("/despesas/?page=1");
+      showToast("Despesa atualizada com sucesso!", "success");
+      setTimeout(() => navigate(`/despesas?highlight=${id}`), 900);
       setErro("");
     } catch {
       setErro("Erro ao atualizar despesa.");
-      setMensagem("");
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Despesa</h1>
-      <p style={{ color: "#aaa" }}>ID: {id}</p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Despesa</h1>
+      <p className="page-subtitle">ID: {id}</p>
 
-      <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormSelect label="Funcionário Responsável" name="funcionario" value={form.funcionario} onChange={handleChange}
           options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
         />
@@ -59,11 +60,9 @@ function EditarDespesa() {
           options={[{ value: "false", label: "Não" }, { value: "true", label: "Sim" }]}
         />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/despesas")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/despesas")}>← Voltar</button>
         </div>
       </form>
     </div>

@@ -5,6 +5,7 @@ import FormInput from "../components/FormInput";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
+import { formatarMoeda } from "../utils/formatadores";
 
 function EditarItemVenda() {
   const { id } = useParams();
@@ -45,40 +46,42 @@ function EditarItemVenda() {
     }
   }
 
-  if (!form) return <div style={{ color: "white", padding: "30px" }}>Carregando...</div>;
+  if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
   return (
-    <div style={{ color: "white", padding: "30px" }}>
-      <h1>Editar Item de Venda</h1>
-      <p style={{ color: "#aaa" }}>Venda: <strong style={{ color: "white" }}>{form.venda}</strong> | Produto: <strong style={{ color: "white" }}>{form.produto_nome || form.produto}</strong></p>
+    <div className="page-container">
+      <h1 className="page-title">Editar Item de Venda</h1>
+      <p className="page-subtitle">
+        Venda: <strong style={{ color: "var(--text-primary)" }}>{form.venda}</strong>
+        {" | "}
+        Produto: <strong style={{ color: "var(--text-primary)" }}>{form.produto_nome || form.produto}</strong>
+      </p>
 
       <MensagemSucesso mensagem={mensagem} />
       <MensagemErro mensagem={erro} />
 
-      <form onSubmit={handleSubmit}>
-        <FormInput label="Quantidade" name="quantidade_vendida" type="number" min="1" value={form.quantidade_vendida} onChange={handleChange} required />
+      <form onSubmit={handleSubmit} className="form-container">
+        <FormInput label="Quantidade" name="quantidade_vendida" type="number" value={form.quantidade_vendida} onChange={handleChange} required />
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>Preço Unitário (R$)</label><br />
-          <input type="text" value={preco.toFixed(2)} disabled
-            style={{ padding: "8px", width: "270px", borderRadius: "6px", border: "1px solid #555", marginTop: "5px", backgroundColor: "#2a2a3e", color: "#aaa" }}
-          />
+        <div className="form-group">
+          <label className="form-label">Preço Unitário (R$)</label>
+          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--text-secondary)", maxWidth: 400 }}>
+            {formatarMoeda(preco)}
+          </div>
         </div>
 
-        <FormInput label="Desconto (%)" name="desconto_aplicado" type="number" step="1" min="0" max="100" value={form.desconto_aplicado} onChange={handleChange} />
+        <FormInput label="Desconto (%)" name="desconto_aplicado" type="number" step="1" value={form.desconto_aplicado} onChange={handleChange} />
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>Subtotal</label><br />
-          <input type="text" value={`R$ ${subtotal.toFixed(2)}`} disabled
-            style={{ padding: "8px", width: "270px", borderRadius: "6px", border: "1px solid #555", marginTop: "5px", backgroundColor: "#2a2a3e", color: "#4ade80", fontWeight: "bold" }}
-          />
+        <div className="form-group">
+          <label className="form-label">Subtotal calculado</label>
+          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--accent-green)", fontWeight: 600, maxWidth: 400 }}>
+            {formatarMoeda(subtotal)}
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div className="form-actions">
           <BotaoSalvar texto="Salvar Alterações" />
-          <button type="button" onClick={() => navigate("/itens-venda")} style={{ padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-            Voltar
-          </button>
+          <button type="button" className="btn btn-back" onClick={() => navigate("/itens-venda")}>← Voltar</button>
         </div>
       </form>
     </div>
