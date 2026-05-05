@@ -64,6 +64,7 @@ function Compras() {
                   <td>{c.status}</td>
                   <td>{c.entregue ? "✓ Sim" : "✗ Não"}</td>
                   <td>R$ {parseFloat(c.valor_total).toFixed(2)}</td>
+                  <Link to={`/compras/${compra.id_compra}`}>Ver detalhes</Link>
                   <td><Link to={`/compras/${c.id_compra}/editar`} style={{ color: "#60a5fa" }}>Editar</Link></td>
                 </tr>
               ))}
