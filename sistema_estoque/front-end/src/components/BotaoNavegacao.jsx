@@ -1,8 +1,16 @@
-function BotaoNormal({ onClick }) {
+import { useNavigate } from "react-router-dom";
+
+function BotaoNavegacao({ urlPagina, texto }) {
+  const navigate = useNavigate();
+
+  function irParaPagina(urlPagina) {
+    navigate(urlPagina);
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => irParaPagina(urlPagina)}
       style={{
         padding: "10px 20px",
         width: "340px",
@@ -19,4 +27,4 @@ function BotaoNormal({ onClick }) {
   );
 }
 
-export default BotaoNormal;
+export default BotaoNavegacao;

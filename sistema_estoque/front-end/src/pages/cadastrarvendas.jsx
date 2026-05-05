@@ -3,10 +3,10 @@ import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
-import Select from "react-select";
 import { useState, useEffect } from "react";
 import { criarDado, listarDados, atualizarDado } from "../services/crudService";
 import FormSelectSearch from "../components/FormSelectSearch";
+import BotaoNavegacao from "../components/BotaoNavegacao";
 
 function gerarIdVenda() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -302,7 +302,12 @@ function CadastrarVendas() {
             isClearable = {true}
         />
 
-        <hr style={{ margin: "30px 0" }} />
+        <BotaoNavegacao
+            urlPagina="/clientes/novo"
+            texto="Cadastrar novo cliente"
+        />
+
+        <hr style={{ margin: "30px 0" }}/>
 
         <h2>Adicionar Item à Venda</h2>
 
