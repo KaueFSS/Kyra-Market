@@ -3,6 +3,7 @@ import Home from "./pages/home";
 import Dashboard from "./pages/dashboard";
 import Vendas from "./pages/vendas";
 import DetalhesVenda from "./pages/detalhesvenda";
+import DetalhesCompra from "./pages/detalhescompra";
 import Clientes from "./pages/clientes";
 import Relatorios from "./pages/relatorio";
 import Produtos from "./pages/produtos";
@@ -59,6 +60,7 @@ function App() {
         <Route path="/clientes/:id/editar" element={<EditarCliente />} />
         <Route path="/funcionarios/:id/editar" element={<EditarFuncionario />} />
         <Route path="/compras/:id/editar" element={<EditarCompra />} />
+        <Route path="/compras/:id" element={<DetalhesCompra />} />
         <Route path="/despesas/:id/editar" element={<EditarDespesa />} />
         <Route path="/vendas/:id/editar" element={<EditarVenda />} />
         <Route path="/vendas/:id" element={<DetalhesVenda />} />

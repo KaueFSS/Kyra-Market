@@ -64,9 +64,23 @@ function CadastrarCompra() {
   }
 
   function handleChangeItem(e) {
-    setItemAtual({ ...itemAtual, [e.target.name]: e.target.value });
-  }
+  const { name, value } = e.target;
 
+  // se mudou o produto
+  if (name === "produto") {
+    const produtoSelecionado = produtos.find(
+      (p) => p.id_produto == value
+    );
+
+    setItemAtual({
+      ...itemAtual,
+      produto: value,
+      preco_unitario: produtoSelecionado?.preco || "",
+    });
+  } else {
+    setItemAtual({ ...itemAtual, [name]: value });
+  }
+}
   function adicionarItem() {
     if (!itemAtual.produto || !itemAtual.quantidade_comprada || !itemAtual.preco_unitario) {
       setErro("Preencha todos os campos do item.");
@@ -221,9 +235,9 @@ function CadastrarCompra() {
         <FormInput
           label="Preço Unitário"
           name="preco_unitario"
-          type="number"
+          type="text"
           value={itemAtual.preco_unitario}
-          onChange={handleChangeItem}
+          readOnly
         />
 
         <button type="button" onClick={adicionarItem}>
