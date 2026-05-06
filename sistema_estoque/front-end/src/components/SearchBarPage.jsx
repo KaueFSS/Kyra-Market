@@ -30,7 +30,7 @@ function SearchBarPage({
           maxWidth: "550px",
           padding: "12px 14px",
           borderRadius: "8px",
-          border: "1px solid #415e98",
+          border: "1px solid #455168",
           backgroundColor: "#1a1d2e",
           color: "#ffffff",
           outline: "none",

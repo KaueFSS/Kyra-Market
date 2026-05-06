@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Compras() {
@@ -20,8 +20,8 @@ function Compras() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [compraSelecionada, setCompraSelecionada] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroEntregue, setFiltroEntregue] = useState("");
@@ -157,7 +157,19 @@ function Compras() {
 
   const comprasFiltradas = sortData(
     compras.filter((c) => {
-      if (compraSelecionada && c.id_compra !== compraSelecionada) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(c.id_compra || "").toLowerCase().includes(texto) ||
+        String(c.nome || "").toLowerCase().includes(texto) ||
+        String(c.fornecedor_nome|| "").toLowerCase().includes(texto) ||
+        String(c.funcionario_nome || "").toLowerCase().includes(texto) ||
+        String(c.data_compra || "").toLowerCase().includes(texto) ||
+        String(c.valor_total || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroEntregue === "true" && !c.entregue) return false;
       if (filtroEntregue === "false" && c.entregue) return false;
       return true;
@@ -191,14 +203,11 @@ function Compras() {
 
       {compras.length > 0 && (
         <>
-          <FormSelectSearch
+          <SearchBar
             label="Pesquisar compra"
-            name="compraSelecionada"
-            value={compraSelecionada}
-            onChange={(e) => setCompraSelecionada(e.target.value)}
-            options={opcoesCompras}
-            placeholder="Selecione uma compra..."
-            isClearable={true}
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite o nome, fornecedor, funcionário, data, valor..."
           />
 
           <div className="filter-bar">
@@ -236,7 +245,6 @@ function Compras() {
                   <Th col="fornecedor_nome" label="Fornecedor" />
                   <Th col="funcionario_nome" label="Funcionário" />
                   <Th col="data_compra" label="Data" />
-                  <Th col="status" label="Status" />
                   <Th col="entregue" label="Entrega" />
                   <Th col="valor_total" label="Valor Total" />
                   <th>Ações</th>
@@ -253,13 +261,12 @@ function Compras() {
                       <td>
                         <span className="copy-id" onClick={() => copiarId(c.id_compra)} title="Clique para copiar">
                           {c.nome || c.id_compra}
-                          {copiado === c.id_compra && <span className="copy-id-tooltip">Copiado!</span>}
+                          {copiado === c.id_compra && <span className="copy-id-tooltip">ID da compra copiado!</span>}
                         </span>
                       </td>
                       <td>{c.fornecedor_nome || c.fornecedor}</td>
                       <td>{c.funcionario_nome || c.funcionario}</td>
                       <td>{formatarData(c.data_compra)}</td>
-                      <td>{c.status || "—"}</td>
                       <td>
                         <span className={`badge ${c.entregue ? "badge-green" : "badge-orange"}`}>
                           {c.entregue ? "✓ Entregue" : "Pendente"}
