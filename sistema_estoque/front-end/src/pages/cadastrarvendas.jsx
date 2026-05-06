@@ -111,6 +111,11 @@ function CadastrarVendas() {
     setItemAtual({ produto: "", quantidade_vendida: "", desconto: "0" });
   }
 
+  function removerItem(produtoId) {
+    setItens((itensAtuais) => itensAtuais.filter((item) => item.produto !== produtoId));
+    setErro("");
+  }
+
   async function salvarVendas(event) {
     event.preventDefault();
 
@@ -294,7 +299,18 @@ function CadastrarVendas() {
               const produtoSelecionado = produtos.find((p) => p.id_produto === item.produto);
               return (
                 <div className="item-card" key={index}>
-                  <p><strong>{produtoSelecionado ? produtoSelecionado.nome : item.produto}</strong></p>
+                  <div className="item-card-header">
+                    <p><strong>{produtoSelecionado ? produtoSelecionado.nome : item.produto}</strong></p>
+                    <button
+                      type="button"
+                      className="item-remove-button"
+                      onClick={() => removerItem(item.produto)}
+                      aria-label="Remover produto da venda"
+                      title="Remover produto"
+                    >
+                      Remover
+                    </button>
+                  </div>
                   <p>
                     {item.quantidade_vendida} un &nbsp;·&nbsp; Desconto: {formatarMoeda(item.desconto)} &nbsp;·&nbsp;
                     Subtotal: <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(item.subtotal)}</strong>

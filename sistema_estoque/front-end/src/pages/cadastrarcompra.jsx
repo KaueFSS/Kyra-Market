@@ -71,6 +71,11 @@ function CadastrarCompra() {
     setErro("");
   }
 
+  function removerItem(produtoId) {
+    setItens((itensAtuais) => itensAtuais.filter((item) => item.produto !== produtoId));
+    setErro("");
+  }
+
   function calcularTotal() {
     return itens.reduce((acc, i) => acc + Number(i.quantidade_comprada) * Number(i.preco_unitario), 0);
   }
@@ -188,7 +193,18 @@ function CadastrarCompra() {
               const p = produtos.find((p) => p.id_produto === item.produto);
               return (
                 <div className="item-card" key={index}>
-                  <p><strong>{p?.nome || item.produto}</strong></p>
+                  <div className="item-card-header">
+                    <p><strong>{p?.nome || item.produto}</strong></p>
+                    <button
+                      type="button"
+                      className="item-remove-button"
+                      onClick={() => removerItem(item.produto)}
+                      aria-label="Remover produto da compra"
+                      title="Remover produto"
+                    >
+                      Remover
+                    </button>
+                  </div>
                   <p>{item.quantidade_comprada} x {formatarMoeda(item.preco_unitario)} = <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(Number(item.quantidade_comprada) * Number(item.preco_unitario))}</strong></p>
                 </div>
               );

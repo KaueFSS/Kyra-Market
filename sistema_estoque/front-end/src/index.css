@@ -805,8 +805,38 @@ a:hover { color: #60a5fa; }
   margin-bottom: 10px;
 }
 
+.item-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-card-header p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .item-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px; }
 .item-card strong { color: var(--text-primary); }
+
+.item-remove-button {
+  flex: 0 0 auto;
+  border: 1px solid rgba(239,68,68,0.35);
+  border-radius: var(--radius-btn);
+  background: rgba(239,68,68,0.12);
+  color: #fca5a5;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 8px 10px;
+}
+
+.item-remove-button:hover {
+  background: rgba(239,68,68,0.22);
+  border-color: rgba(239,68,68,0.55);
+}
 
 /* ===== FEEDBACK MESSAGES ===== */
 .success-msg {
