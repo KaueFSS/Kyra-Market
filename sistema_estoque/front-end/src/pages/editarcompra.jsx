@@ -42,7 +42,7 @@ function EditarCompra() {
         nota_fiscal: form.nota_fiscal,
         valor_total: form.valor_total,
       });
-      invalidateCache("/compras/?page=1");
+      invalidateCache();
       showToast("Compra atualizada com sucesso!", "success");
       setTimeout(() => navigate(`/compras?highlight=${id}`), 900);
       setErro("");

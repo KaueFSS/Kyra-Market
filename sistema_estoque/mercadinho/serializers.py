@@ -123,6 +123,7 @@ class ItemCompraInputSerializer(serializers.Serializer):
 
 
 class RegistrarCompraSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=False, allow_blank=True, default="")
     fornecedor = serializers.CharField()
     funcionario = serializers.CharField()
     data_compra = serializers.DateField()

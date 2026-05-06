@@ -24,6 +24,36 @@ def gerar_id(prefix):
     return f"{prefix}{uuid.uuid4().hex[:8].upper()}"
 
 
+def gerar_id_despesa():
+    return f"DSP{uuid.uuid4().hex[:7].upper()}"
+
+
+def descricao_despesa_compra(compra):
+    return f"Compra {compra.id_compra} - {compra.fornecedor.razao_social}"[:100]
+
+
+def sincronizar_despesa_compra(compra):
+    despesa = Despesa.objects.filter(
+        compra=compra,
+        categoria='Compra de mercadorias',
+    ).first()
+
+    if despesa is None:
+        despesa = Despesa(
+            id_despesa=gerar_id_despesa(),
+            compra=compra,
+            categoria='Compra de mercadorias',
+        )
+
+    despesa.funcionario = compra.funcionario
+    despesa.data = compra.data_compra
+    despesa.descricao = descricao_despesa_compra(compra)
+    despesa.valor = compra.valor_total
+    despesa.recorrente = False
+    despesa.save()
+    return despesa
+
+
 class ProdutoViewSet(viewsets.ModelViewSet):
     queryset = Produto.objects.all()
     serializer_class = ProdutoSerializer
@@ -58,6 +88,15 @@ class FuncionarioViewSet(viewsets.ModelViewSet):
 class CompraFornecedorViewSet(viewsets.ModelViewSet):
     queryset = CompraFornecedor.objects.select_related('fornecedor', 'funcionario').prefetch_related('itens').all()
     serializer_class = CompraFornecedorSerializer
+
+    def perform_update(self, serializer):
+        compra = serializer.save()
+        sincronizar_despesa_compra(compra)
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            instance.despesas.filter(categoria='Compra de mercadorias').delete()
+            instance.delete()
 
     @action(detail=False, methods=['get'], url_path='pendentes')
     def pendentes(self, request):
@@ -370,6 +409,7 @@ class RegistrarCompraView(APIView):
 
                 compra = CompraFornecedor.objects.create(
                     id_compra=gerar_id('CMP'),
+                    nome=dados.get('nome', ''),
                     fornecedor=fornecedor,
                     funcionario=funcionario,
                     data_compra=dados['data_compra'],
@@ -379,6 +419,8 @@ class RegistrarCompraView(APIView):
                     nota_fiscal=dados.get('nota_fiscal', ''),
                     valor_total=dados['valor_total'],
                 )
+
+                sincronizar_despesa_compra(compra)
 
                 for item_data in dados['itens']:
                     produto = Produto.objects.get(pk=item_data['produto'])
@@ -431,6 +473,7 @@ class LucroMensalView(APIView):
         ).aggregate(t=Sum('subtotal'))['t'] or 0
 
         despesas = Despesa.objects.filter(
+            compra__isnull=True,
             data__year=ano,
             data__month=mes,
         ).aggregate(t=Sum('valor'))['t'] or 0
