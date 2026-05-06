@@ -5,6 +5,7 @@ import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from
 import { showToast } from "../utils/toast";
 import FormSelectSearch from "../components/FormSelectSearch";
 import { formatarFormaPagamento, formatarMoeda, formatarData } from "../utils/formatadores";
+import SearchBar from "../components/SearchBarPage";
 
 const FORMAS = [
   { value: "", label: "Todos" },
@@ -27,6 +28,9 @@ function Vendas() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
+
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // busca
   const [vendaSelecionada, setVendaSelecionada] = useState("");
@@ -152,6 +156,19 @@ function Vendas() {
 
   const vendasFiltradas = sortData(
     vendas.filter((v) => {
+    const texto = termoBusca.toLowerCase().trim();
+    
+    //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+    const bateBusca =
+      !texto ||
+      String(v.id_venda || "").toLowerCase().includes(texto) ||
+      String(v.nome || "").toLowerCase().includes(texto) ||
+      String(v.cliente_nome || v.cliente || "").toLowerCase().includes(texto) ||
+      String(v.funcionario_nome || v.funcionario || "").toLowerCase().includes(texto) ||
+      String(v.data_venda || "").toLowerCase().includes(texto) ||
+      String(v.forma_pagamento || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (vendaSelecionada && v.id_venda !== vendaSelecionada) return false;
       if (filtroForma && v.forma_pagamento !== filtroForma) return false;
       if (filtroDataInicio && v.data_venda < filtroDataInicio) return false;
@@ -195,14 +212,11 @@ function Vendas() {
 
       {vendas.length > 0 && (
         <>
-          <FormSelectSearch
-            label="Pesquisar venda"
-            name="vendaSelecionada"
-            value={vendaSelecionada}
-            onChange={(e) => setVendaSelecionada(e.target.value)}
-            options={opcoesVendas}
-            placeholder="Selecione uma venda..."
-            isClearable={true}
+          <SearchBar
+            label="Pesquisar vendas"
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite nome da venda, cliente, funcionário, ID..."
           />
 
           {/* Filtros */}
