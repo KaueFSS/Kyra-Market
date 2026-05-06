@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormSelectSearch from "../components/FormSelectSearch";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
@@ -105,6 +106,21 @@ function CadastrarCompra() {
     }
   }
 
+  const opcoesFuncionarios = funcionarios.map((f) => ({
+    value: f.id_funcionario,
+    label: `${f.id_funcionario} - ${f.nome}`,
+  }));
+
+  const opcoesFornecedores = fornecedores.map((f) => ({
+    value: f.id_fornecedor,
+    label: `${f.fornecedor} - ${f.nome_fantasia}`,
+  }));
+
+  const opcoesProdutos = produtos.map((p) => ({
+    value: p.id_produto,
+    label: `${p.id_produto} - ${p.nome}`,
+  }));
+
   return (
     <div className="page-container">
       <h1 className="page-title">Cadastrar Compra</h1>
@@ -117,11 +133,23 @@ function CadastrarCompra() {
         <div className="form-section">
           <h3 className="form-section-title">Dados da Compra</h3>
           <FormInput label="Nome" name="nome" value={compra.nome} onChange={handleChangeCompra} placeholder="Ex: Reposição de Laticínios - Maio" />
-          <FormSelect label="Fornecedor" name="fornecedor" value={compra.fornecedor} onChange={handleChangeCompra}
-            options={fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))}
+          <FormSelectSearch
+            label="Fornecedor"
+            name="fornecedor"
+            value={compra.fornecedor}
+            onChange={handleChangeCompra}
+            options={opcoesFornecedores}
+            placeholder="Selecione um fornecedor..."
+            required={true}
           />
-          <FormSelect label="Funcionário" name="funcionario" value={compra.funcionario} onChange={handleChangeCompra}
-            options={funcionarios.map((f) => ({ value: f.id_funcionario, label: f.nome }))}
+          <FormSelectSearch
+            label="Funcionário Responsável"
+            name="funcionario"
+            value={compra.funcionario}
+            onChange={handleChangeCompra}
+            options={opcoesFuncionarios}
+            placeholder="Selecione um funcionário..."
+            required={true}
           />
           <FormInput label="Data da Compra" name="data_compra" type="date" value={compra.data_compra} onChange={handleChangeCompra} />
           <FormSelect label="Status" name="status" value={compra.status} onChange={handleChangeCompra}
@@ -132,8 +160,14 @@ function CadastrarCompra() {
 
         <div className="form-section">
           <h3 className="form-section-title">Adicionar Item</h3>
-          <FormSelect label="Produto" name="produto" value={itemAtual.produto} onChange={handleChangeItem}
-            options={produtos.map((p) => ({ value: p.id_produto, label: `${p.nome} - Custo: ${formatarMoeda(p.preco_custo)}` }))}
+          <FormSelectSearch
+            label="Produto"
+            name="produto"
+            value={itemAtual.produto}
+            onChange={handleChangeItem}
+            options={opcoesProdutos}
+            placeholder="Selecione um produto..."
+            required={true}
           />
           <FormInput label="Quantidade" name="quantidade_comprada" type="number" value={itemAtual.quantidade_comprada} onChange={handleChangeItem} />
           <div className="form-group">

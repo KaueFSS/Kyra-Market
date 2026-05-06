@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormSelectSearch from "../components/FormSelectSearch";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
@@ -46,6 +47,11 @@ function CadastrarDespesa() {
     }
   }
 
+  const opcoesFuncionarios = funcionarios.map((f) => ({
+    value: f.id_funcionario,
+    label: `${f.id_funcionario} - ${f.nome}`,
+  }));
+
   return (
     <div className="page-container">
       <h1 className="page-title">Cadastrar Despesa</h1>
@@ -55,8 +61,14 @@ function CadastrarDespesa() {
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit} className="form-container">
-        <FormSelect label="Funcionário Responsável" name="funcionario" value={form.funcionario} onChange={handleChange}
-          options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.id_funcionario} - ${f.nome}` }))}
+        <FormSelectSearch
+          label="Funcionário Responsável"
+          name="funcionario"
+          value={form.funcionario}
+          onChange={handleChange}
+          options={opcoesFuncionarios}
+          placeholder="Selecione um funcionário..."
+          required={true}
         />
         <FormInput label="ID da Compra Vinculada (opcional)" name="compra" value={form.compra} onChange={handleChange} placeholder="Deixe em branco se não houver" />
         <FormInput label="Data" name="data" type="date" value={form.data} onChange={handleChange} required />
