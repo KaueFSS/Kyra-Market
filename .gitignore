@@ -4,5 +4,5 @@ node_modules/
 __pycache__/
 *.py[cod]
 
-sistema_estoque/db.sqlite3
+
 
