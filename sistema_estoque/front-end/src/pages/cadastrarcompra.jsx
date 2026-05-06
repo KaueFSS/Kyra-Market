@@ -5,6 +5,7 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
+import { invalidateCache } from "../utils/apiCache";
 import { formatarMoeda } from "../utils/formatadores";
 
 const estadoInicialCompra = {
@@ -92,6 +93,7 @@ function CadastrarCompra() {
           valor_unitario: Number(i.preco_unitario).toFixed(2),
         })),
       });
+      invalidateCache();
       setMensagem("Compra cadastrada com sucesso!");
       setErro("");
       setCompra(estadoInicialCompra);
