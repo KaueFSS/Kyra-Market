@@ -5,3 +5,4 @@ __pycache__/
 *.py[cod]
 
 sistema_estoque/db.sqlite3
+
