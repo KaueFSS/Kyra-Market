@@ -409,6 +409,7 @@ class RegistrarCompraView(APIView):
 
                 compra = CompraFornecedor.objects.create(
                     id_compra=gerar_id('CMP'),
+                    nome=dados.get('nome', ''),
                     fornecedor=fornecedor,
                     funcionario=funcionario,
                     data_compra=dados['data_compra'],

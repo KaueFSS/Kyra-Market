@@ -7,6 +7,7 @@ import BotaoNavegacao from "../components/BotaoNavegacao";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
+import { invalidateCache } from "../utils/apiCache";
 import { formatarMoeda } from "../utils/formatadores";
 
 function CadastrarVendas() {
@@ -133,6 +134,7 @@ function CadastrarVendas() {
         }),
       });
 
+      invalidateCache();
       setMensagem("Venda cadastrada com sucesso!");
       setErro("");
       setVendas({

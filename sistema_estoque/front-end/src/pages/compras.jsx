@@ -72,7 +72,7 @@ function Compras() {
     setCompraAtualizando(idCompra);
     try {
       const response = await api.post(`/compras/${idCompra}/entregar/`);
-      invalidateCache(pageUrl(pagina));
+      invalidateCache();
       setCompras((prev) => prev.map((c) => c.id_compra === idCompra ? response.data : c));
       showToast("Compra marcada como entregue e estoque atualizado!", "success");
     } catch (error) {
@@ -120,7 +120,7 @@ function Compras() {
     setExcluindo(true);
     try {
       await Promise.all([...selecionados].map((id) => api.delete(`/compras/${id}/`)));
-      invalidateCache(pageUrl(pagina));
+      invalidateCache();
       setSelecionados(new Set());
       showToast(`${selecionados.size} compra(s) excluída(s).`, "success");
       const res = await cachedGet(api, pageUrl(pagina));
