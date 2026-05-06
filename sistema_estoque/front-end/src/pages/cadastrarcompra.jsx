@@ -45,7 +45,7 @@ function CadastrarCompra() {
     const { name, value } = e.target;
     if (name === "produto") {
       const p = produtos.find((p) => p.id_produto === value);
-      setItemAtual({ ...itemAtual, produto: value, preco_unitario: p?.preco || "" });
+      setItemAtual({ ...itemAtual, produto: value, preco_unitario: p?.preco_custo ?? "" });
       return;
     }
     setItemAtual({ ...itemAtual, [name]: value });
@@ -131,11 +131,11 @@ function CadastrarCompra() {
         <div className="form-section">
           <h3 className="form-section-title">Adicionar Item</h3>
           <FormSelect label="Produto" name="produto" value={itemAtual.produto} onChange={handleChangeItem}
-            options={produtos.map((p) => ({ value: p.id_produto, label: p.nome }))}
+            options={produtos.map((p) => ({ value: p.id_produto, label: `${p.nome} - Custo: ${formatarMoeda(p.preco_custo)}` }))}
           />
           <FormInput label="Quantidade" name="quantidade_comprada" type="number" value={itemAtual.quantidade_comprada} onChange={handleChangeItem} />
           <div className="form-group">
-            <label className="form-label">Preço Unitário (R$)</label>
+            <label className="form-label">Preço de Custo Unitário (R$)</label>
             <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--text-secondary)", maxWidth: 400 }}>
               {itemAtual.preco_unitario ? formatarMoeda(itemAtual.preco_unitario) : "Selecione um produto"}
             </div>
