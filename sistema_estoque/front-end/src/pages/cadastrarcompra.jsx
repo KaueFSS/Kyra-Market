@@ -118,7 +118,7 @@ function CadastrarCompra() {
 
   const opcoesFornecedores = fornecedores.map((f) => ({
     value: f.id_fornecedor,
-    label: `${f.fornecedor} - ${f.nome_fantasia}`,
+    label: `${f.id_fornecedor} - ${f.nome_fantasia}`,
   }));
 
   const opcoesProdutos = produtos.map((p) => ({

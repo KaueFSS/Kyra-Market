@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormSelectSearch from "../components/FormSelectSearch";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import { listarDados } from "../services/crudService";
@@ -31,17 +32,37 @@ function EditarVenda() {
 
   async function salvar() {
     try {
-      await api.patch(`/vendas/${id}/`, { ...form, cliente: form.cliente || null });
+      const dadosParaEnviar = {
+        nome: form.nome || "",
+        data_venda: form.data_venda,
+        hora: form.hora,
+        forma_pagamento: form.forma_pagamento,
+        funcionario: form.funcionario,
+        cliente: form.cliente || null,
+      };
+
+      await api.patch(`/vendas/${id}/`, dadosParaEnviar);
       invalidateCache("/vendas/?page=1");
       showToast("Venda atualizada com sucesso!", "success");
       setTimeout(() => navigate(`/vendas?highlight=${id}`), 900);
       setErro("");
-    } catch {
+    } catch (error) {
+      console.error(error.response?.data);
       setErro("Erro ao atualizar venda.");
     }
   }
 
   if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
+
+  const opcoesFuncionarios = funcionarios.map((f) => ({
+    value: f.id_funcionario,
+    label: `${f.id_funcionario} - ${f.nome}`,
+  }));
+
+  const opcoesClientes = clientes.map((c) => ({
+    value: c.id_cliente,
+    label: `${c.id_cliente} - ${c.nome}`,
+  }));
 
   return (
     <div className="page-container">
@@ -63,11 +84,23 @@ function EditarVenda() {
             { value: "fiado", label: "Fiado" },
           ]}
         />
-        <FormSelect label="Funcionário" name="funcionario" value={form.funcionario} onChange={handleChange}
-          options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
+        <FormSelectSearch
+            label="Funcionário Responsável"
+            name="funcionario"
+            value={form.funcionario}
+            onChange={handleChange}
+            options={opcoesFuncionarios}
+            placeholder="Selecione um funcionário..."
+            required={true}
         />
-        <FormSelect label="Cliente (opcional)" name="cliente" value={form.cliente || ""} onChange={handleChange}
-          options={[{ value: "", label: "Sem cliente" }, ...clientes.map((c) => ({ value: c.id_cliente, label: c.nome }))]}
+        <FormSelectSearch
+            label="Cliente (opcional)"
+            name="cliente"
+            value={form.cliente}
+            onChange={handleChange}
+            options={opcoesClientes}
+            placeholder="Selecione um cliente..."
+            isClearable={true}
         />
 
         <div className="form-actions">

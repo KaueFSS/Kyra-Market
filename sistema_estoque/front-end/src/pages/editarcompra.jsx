@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormSelectSearch from "../components/FormSelectSearch";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import { listarDados } from "../services/crudService";
@@ -53,6 +54,16 @@ function EditarCompra() {
 
   if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
+  const opcoesFuncionarios = funcionarios.map((f) => ({
+    value: f.id_funcionario,
+    label: `${f.id_funcionario} - ${f.nome}`,
+  }));
+
+  const opcoesFornecedores = fornecedores.map((f) => ({
+    value: f.id_fornecedor,
+    label: `${f.id_fornecedor} - ${f.nome_fantasia}`,
+  }));
+
   return (
     <div className="page-container">
       <h1 className="page-title">Editar Compra</h1>
@@ -62,11 +73,23 @@ function EditarCompra() {
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormInput label="Nome da Compra" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Reposição de Laticínios" />
-        <FormSelect label="Fornecedor" name="fornecedor" value={form.fornecedor} onChange={handleChange}
-          options={fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))}
+        <FormSelectSearch
+            label="Fornecedor"
+            name="fornecedor"
+            value={form.fornecedor}
+            onChange={handleChange}
+            options={opcoesFornecedores}
+            placeholder="Selecione um fornecedor..."
+            required={true}
         />
-        <FormSelect label="Funcionário" name="funcionario" value={form.funcionario} onChange={handleChange}
-          options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
+        <FormSelectSearch
+            label="Funcionário Responsável"
+            name="funcionario"
+            value={form.funcionario}
+            onChange={handleChange}
+            options={opcoesFuncionarios}
+            placeholder="Selecione um funcionário..."
+            required={true}
         />
         <FormInput label="Data da Compra" name="data_compra" type="date" value={form.data_compra} onChange={handleChange} required />
         <FormSelect label="Status" name="status" value={form.status} onChange={handleChange}

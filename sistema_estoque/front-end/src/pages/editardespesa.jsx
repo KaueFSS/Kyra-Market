@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormSelectSearch from "../components/FormSelectSearch";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import { listarDados } from "../services/crudService";
@@ -41,6 +42,11 @@ function EditarDespesa() {
 
   if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
+  const opcoesFuncionarios = funcionarios.map((f) => ({
+    value: f.id_funcionario,
+    label: `${f.id_funcionario} - ${f.nome}`,
+  }));
+
   return (
     <div className="page-container">
       <h1 className="page-title">Editar Despesa</h1>
@@ -49,8 +55,14 @@ function EditarDespesa() {
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
-        <FormSelect label="Funcionário Responsável" name="funcionario" value={form.funcionario} onChange={handleChange}
-          options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
+        <FormSelectSearch
+          label="Funcionário Responsável"
+          name="funcionario"
+          value={form.funcionario}
+          onChange={handleChange}
+          options={opcoesFuncionarios}
+          placeholder="Selecione um funcionário..."
+          required={true}
         />
         <FormInput label="Data" name="data" type="date" value={form.data} onChange={handleChange} required />
         <FormInput label="Categoria" name="categoria" value={form.categoria} onChange={handleChange} required placeholder="Ex: Aluguel, Luz, Água..." />
