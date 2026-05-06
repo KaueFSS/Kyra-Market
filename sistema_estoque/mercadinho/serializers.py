@@ -65,8 +65,9 @@ class ItemVendaSerializer(serializers.ModelSerializer):
 
 
 class VendaSerializer(serializers.ModelSerializer):   
+    funcionario_nome = serializers.CharField(source='funcionario.nome', read_only=True)
+    cliente_nome = serializers.CharField(source='cliente.nome', read_only=True, default=None)
     itens_nomes = serializers.SerializerMethodField() # cria um campo que não existe no banco para nome dos itens
-
     total = serializers.SerializerMethodField() # cria um campo que não existe no banco para o total da venda
 
     class Meta:
@@ -99,6 +100,7 @@ class ItemVendaInputSerializer(serializers.Serializer):
 
 
 class RegistrarVendaSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=False, allow_blank=True, default="")
     funcionario = serializers.CharField()
     cliente = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     data_venda = serializers.DateField()

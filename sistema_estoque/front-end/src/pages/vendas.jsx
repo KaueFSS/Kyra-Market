@@ -147,7 +147,7 @@ function Vendas() {
 
   const opcoesVendas = vendas.map((v) => ({
     value: v.id_venda,
-    label: `${v.id_venda} - ${v.cliente_nome || v.cliente || "Sem cliente"} - ${v.data_venda}`,
+    label: `${v.id_venda} - ${v.nome || "Sem nome"} - ${v.cliente_nome || v.cliente || "Sem cliente"} - ${v.data_venda}`,
   }));
 
   const vendasFiltradas = sortData(
@@ -257,7 +257,7 @@ function Vendas() {
                   <th className="col-check">
                     <input type="checkbox" checked={selecionados.size === vendasFiltradas.length && vendasFiltradas.length > 0} onChange={toggleTodos} />
                   </th>
-                  <Th col="id_venda" label="ID Venda" />
+                  <Th col="nome" label="Nome" />
                   <Th col="data_venda" label="Data" />
                   <Th col="hora" label="Hora" />
                   <Th col="forma_pagamento" label="Pagamento" />
@@ -278,15 +278,15 @@ function Vendas() {
                       </td>
                       <td>
                         <span className="copy-id" onClick={() => copiarId(v.id_venda)} title="Clique para copiar">
-                          #{v.id_venda}
-                          {copiado === v.id_venda && <span className="copy-id-tooltip">Copiado!</span>}
+                          {v.nome || v.id_venda}
+                          {copiado === v.id_venda && <span className="copy-id-tooltip">ID da venda copiado!</span>}
                         </span>
                       </td>
                       <td>{formatarData(v.data_venda)}</td>
                       <td>{v.hora ? v.hora.slice(0, 5) : "—"}</td>
                       <td><span className={`badge ${fp.cls}`}>{fp.icon} {fp.label}</span></td>
-                      <td>{v.funcionario}</td>
-                      <td>{v.cliente || <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
+                      <td>{v.funcionario_nome || v.funcionario}</td>
+                      <td>{v.cliente_nome || <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
                       <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>{formatarMoeda(v.total || 0)}</td>
                       <td>
                         <div className="table-actions">
