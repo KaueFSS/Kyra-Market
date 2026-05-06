@@ -1130,7 +1130,6 @@ a:hover { color: #60a5fa; }
   cursor: pointer;
   position: relative;
   font-family: monospace;
-  font-size: 0.82rem;
   transition: color 0.12s;
 }
 

@@ -318,6 +318,7 @@ class RegistrarVendaView(APIView):
                     cliente = Cliente.objects.get(pk=dados['cliente'])
 
                 venda = Venda.objects.create(
+                    nome=dados.get("nome", ""),
                     id_venda=gerar_id('VND'),
                     data_venda=dados['data_venda'],
                     hora=dados['hora'],
