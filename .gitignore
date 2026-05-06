@@ -6,9 +6,3 @@ __pycache__/
 
 sistema_estoque/db.sqlite3
 
-# Metabase — arquivos de banco e credenciais (sensíveis, não vão pro repo)
-sistema_estoque/metabase/metabase.db.mv.db
-sistema_estoque/metabase/metabase.db.trace.db
-sistema_estoque/metabase/metabase_creds.json
-sistema_estoque/metabase/plugins/
-# metabase.jar vai via Git LFS
