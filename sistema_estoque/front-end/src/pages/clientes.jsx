@@ -191,7 +191,7 @@ function Clientes() {
             label="Pesquisar cliente"
             value={termoBusca}
             onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite o nome, telefone, bairro, data..."
+            placeholder="Digite o nome do nome, telefone, bairro, data..."
           />
 
           <div className="filter-bar">
