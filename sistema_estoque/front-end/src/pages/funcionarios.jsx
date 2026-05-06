@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 const POR_PAGINA = 15;
@@ -19,8 +19,8 @@ function Funcionarios() {
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [erro, setErro] = useState("");
 
-  // busca
-  const [funcionarioSelecionado, setFuncionarioSelecionado] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroAtivo, setFiltroAtivo] = useState("");
@@ -145,7 +145,20 @@ function Funcionarios() {
 
   const funcionariosFiltrados = sortData(
     funcionarios.filter((f) => {
-      if (funcionarioSelecionado && f.id_funcionario !== funcionarioSelecionado) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(f.id_funcionario || "").toLowerCase().includes(texto) ||
+        String(f.nome || "").toLowerCase().includes(texto) ||
+        String(f.cargo || "").toLowerCase().includes(texto) ||
+        String(f.turno || "").toLowerCase().includes(texto) ||
+        String(f.salario || "").toLowerCase().includes(texto) ||
+        String(f.horas_semanais || "").toLowerCase().includes(texto) ||
+        String(f.data_admissao || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroAtivo === "true" && !f.ativo) return false;
       if (filtroAtivo === "false" && f.ativo) return false;
       if (filtroCargo && f.cargo !== filtroCargo) return false;
@@ -177,14 +190,11 @@ function Funcionarios() {
 
       {funcionarios.length > 0 && (
         <>
-          <FormSelectSearch
-            label="Pesquisar funcionário"
-            name="funcionarioSelecionado"
-            value={funcionarioSelecionado}
-            onChange={(e) => setFuncionarioSelecionado(e.target.value)}
-            options={opcoesFuncionarios}
-            placeholder="Selecione um funcionário..."
-            isClearable={true}
+          <SearchBar
+            label="Pesquisar funcionario"
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite o nome do nome, cargo, turno, salario..."
           />
 
           <div className="filter-bar">

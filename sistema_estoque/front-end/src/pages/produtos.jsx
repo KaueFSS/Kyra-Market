@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
 import { formatarMoeda } from "../utils/formatadores";
+import SearchBar from "../components/SearchBarPage";
 
 function Produtos() {
   const pageUrl = (p) => `/produtos/?page=${p}`;
@@ -19,8 +19,8 @@ function Produtos() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [produtoSelecionado, setProdutoSelecionado] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -145,7 +145,19 @@ function Produtos() {
 
   const produtosFiltrados = sortData(
     produtos.filter((p) => {
-      if (produtoSelecionado && p.id_produto !== produtoSelecionado) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(p.id_produto || "").toLowerCase().includes(texto) ||
+        String(p.fornecedor || "").toLowerCase().includes(texto) ||
+        String(p.marca || "").toLowerCase().includes(texto) ||
+        String(p.categoria || v.funcionario || "").toLowerCase().includes(texto) ||
+        String(p.subcategoria || "").toLowerCase().includes(texto) ||
+        String(p.nome || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroCategoria && p.categoria !== filtroCategoria) return false;
       if (filtroMarca && p.marca !== filtroMarca) return false;
       return true;
@@ -177,14 +189,11 @@ function Produtos() {
 
       {produtos.length > 0 && (
         <>
-          <FormSelectSearch
-            label="Pesquisar produto"
-            name="produtoSelecionado"
-            value={produtoSelecionado}
-            onChange={(e) => setProdutoSelecionado(e.target.value)}
-            options={opcoesProdutos}
-            placeholder="Selecione um produto..."
-            isClearable={true}
+          <SearchBar
+            label="Pesquisar produtos"
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite nome do produto, fornecedor, marca..."
           />
 
           <div className="filter-bar">
@@ -228,8 +237,8 @@ function Produtos() {
                     <input type="checkbox" checked={selecionados.size === produtosFiltrados.length && produtosFiltrados.length > 0} onChange={toggleTodos} />
                   </th>
                   <Th col="id_produto" label="ID" />
-                  <Th col="fornecedor_nome" label="Fornecedor" />
                   <Th col="nome" label="Nome" />
+                  <Th col="fornecedor_nome" label="Fornecedor" />
                   <Th col="categoria" label="Categoria" />
                   <Th col="marca" label="Marca" />
                   <Th col="unidade" label="Unidade" />
@@ -252,8 +261,8 @@ function Produtos() {
                           {copiado === p.id_produto && <span className="copy-id-tooltip">Copiado!</span>}
                         </span>
                       </td>
-                      <td>{p.fornecedor_nome || p.fornecedor || "—"}</td>
                       <td>{p.nome}</td>
+                      <td>{p.fornecedor_nome || p.fornecedor || "—"}</td>
                       <td>{p.categoria || "—"}</td>
                       <td>{p.marca || "—"}</td>
                       <td>{p.unidade || "—"}</td>

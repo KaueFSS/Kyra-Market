@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
 import { formatarFormaPagamento, formatarMoeda, formatarData } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
 
@@ -31,9 +30,6 @@ function Vendas() {
 
   //barra de pesquisa de vendas
   const [termoBusca, setTermoBusca] = useState("");
-
-  // busca
-  const [vendaSelecionada, setVendaSelecionada] = useState("");
 
   // filtros
   const [filtroForma, setFiltroForma] = useState("");
@@ -156,20 +152,19 @@ function Vendas() {
 
   const vendasFiltradas = sortData(
     vendas.filter((v) => {
-    const texto = termoBusca.toLowerCase().trim();
-    
-    //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
-    const bateBusca =
-      !texto ||
-      String(v.id_venda || "").toLowerCase().includes(texto) ||
-      String(v.nome || "").toLowerCase().includes(texto) ||
-      String(v.cliente_nome || v.cliente || "").toLowerCase().includes(texto) ||
-      String(v.funcionario_nome || v.funcionario || "").toLowerCase().includes(texto) ||
-      String(v.data_venda || "").toLowerCase().includes(texto) ||
-      String(v.forma_pagamento || "").toLowerCase().includes(texto);
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(v.id_venda || "").toLowerCase().includes(texto) ||
+        String(v.nome || "").toLowerCase().includes(texto) ||
+        String(v.cliente_nome || v.cliente || "").toLowerCase().includes(texto) ||
+        String(v.funcionario_nome || v.funcionario || "").toLowerCase().includes(texto) ||
+        String(v.data_venda || "").toLowerCase().includes(texto) ||
+        String(v.forma_pagamento || "").toLowerCase().includes(texto);
 
       if (!bateBusca) return false;
-      if (vendaSelecionada && v.id_venda !== vendaSelecionada) return false;
       if (filtroForma && v.forma_pagamento !== filtroForma) return false;
       if (filtroDataInicio && v.data_venda < filtroDataInicio) return false;
       if (filtroDataFim && v.data_venda > filtroDataFim) return false;
@@ -199,7 +194,6 @@ function Vendas() {
       <div className="page-header-row">
         <div>
           <h1 className="page-title">Vendas</h1>
-          <p className="page-subtitle" style={{ marginBottom: 0 }}>Lista de vendas registradas no sistema.</p>
         </div>
         <Link to="/vendas/novo" className="btn-add">+ Nova Venda</Link>
       </div>

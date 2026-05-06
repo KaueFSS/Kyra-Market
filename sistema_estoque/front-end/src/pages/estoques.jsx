@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 
 function Estoques() {
   const pageUrl = (p) => `/estoques/?page=${p}`;
@@ -18,8 +18,8 @@ function Estoques() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [estoqueSelecionado, setEstoqueSelecionado] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroStatus, setFiltroStatus] = useState("");
@@ -148,7 +148,18 @@ function Estoques() {
 
   const estoquesFiltrados = sortData(
     estoques.filter((e) => {
-      if (estoqueSelecionado && e.id_estoque !== estoqueSelecionado) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(e.produto_nome || "").toLowerCase().includes(texto) ||
+        String(e.dt_ultima_entrada || "").toLowerCase().includes(texto) ||
+        String(e.dt_ultima_saida || "").toLowerCase().includes(texto) ||
+        String(e.quantidade_atual || "").toLowerCase().includes(texto) ||
+        String(e.quantidade_minima || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroStatus && getStatus(e) !== filtroStatus) return false;
       return true;
     })
@@ -176,14 +187,11 @@ function Estoques() {
 
       {estoques.length > 0 && (
         <>
-          <FormSelectSearch
+          <SearchBar
             label="Pesquisar estoque"
-            name="estoqueSelecionado"
-            value={estoqueSelecionado}
-            onChange={(e) => setEstoqueSelecionado(e.target.value)}
-            options={opcoesEstoques}
-            placeholder="Selecione um estoque..."
-            isClearable={true}
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite o nome do produto, quantidade, data..."
           />
 
           <div className="filter-bar" style={{ marginTop: 8 }}>

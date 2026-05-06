@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Despesas() {
@@ -19,8 +19,8 @@ function Despesas() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [despesaSelecionada, setDespesaSelecionada] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -144,7 +144,19 @@ function Despesas() {
 
   const despesasFiltradas = sortData(
     despesas.filter((d) => {
-      if (despesaSelecionada && d.id_despesa !== despesaSelecionada) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(d.id_despesa || "").toLowerCase().includes(texto) ||
+        String(d.funcionario_nome || "").toLowerCase().includes(texto) ||
+        String(d.data || "").toLowerCase().includes(texto) ||
+        String(d.categoria || "").toLowerCase().includes(texto) ||
+        String(d.descricao || "").toLowerCase().includes(texto) ||
+        String(d.valor || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroCategoria && d.categoria !== filtroCategoria) return false;
       if (filtroRecorrente === "true" && !d.recorrente) return false;
       if (filtroRecorrente === "false" && d.recorrente) return false;
@@ -179,14 +191,11 @@ function Despesas() {
 
       {despesas.length > 0 && (
         <>
-          <FormSelectSearch
+          <SearchBar
             label="Pesquisar despesa"
-            name="despesaSelecionada"
-            value={despesaSelecionada}
-            onChange={(e) => setDespesaSelecionada(e.target.value)}
-            options={opcoesDespesas}
-            placeholder="Selecione uma despesa..."
-            isClearable={true}
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite a descrição, data, categoria, valor, funcionário..."
           />
 
           <div className="filter-bar">

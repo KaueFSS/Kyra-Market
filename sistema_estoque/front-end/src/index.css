@@ -1299,6 +1299,12 @@ a:hover { color: #60a5fa; }
   font-size: 0.72rem;
 }
 
+/*placeholder da barra de pesquisa */
+.searchbar-page-input::placeholder {
+  color: #8b8fa8;
+  opacity: 1;
+}
+
 /* ===== QoL: INLINE FORM VALIDATION ===== */
 .form-input-error {
   border-color: var(--accent-red) !important;

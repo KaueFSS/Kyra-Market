@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Clientes() {
@@ -19,8 +19,8 @@ function Clientes() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [clienteSelecionado, setClienteSelecionado] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroFiado, setFiltroFiado] = useState("");
@@ -141,7 +141,19 @@ function Clientes() {
 
   const clientesFiltrados = sortData(
     clientes.filter((c) => {
-      if (clienteSelecionado && c.id_cliente !== clienteSelecionado) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(c.id_cliente || "").toLowerCase().includes(texto) ||
+        String(c.nome || "").toLowerCase().includes(texto) ||
+        String(c.telefone || "").toLowerCase().includes(texto) ||
+        String(c.bairro || "").toLowerCase().includes(texto) ||
+        String(c.data_cadastro || "").toLowerCase().includes(texto) ||
+        String(c.ultima_compra || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroFiado === "true" && !c.possui_fiado) return false;
       if (filtroFiado === "false" && c.possui_fiado) return false;
       return true;
@@ -163,7 +175,6 @@ function Clientes() {
       <div className="page-header-row">
         <div>
           <h1 className="page-title">Clientes</h1>
-          <p className="page-subtitle" style={{ marginBottom: 0 }}>Lista de clientes cadastrados no sistema.</p>
         </div>
         <Link to="/clientes/novo" className="btn-add">+ Novo Cliente</Link>
       </div>
@@ -176,14 +187,11 @@ function Clientes() {
 
       {clientes.length > 0 && (
         <>
-          <FormSelectSearch
+          <SearchBar
             label="Pesquisar cliente"
-            name="clienteSelecionado"
-            value={clienteSelecionado}
-            onChange={(e) => setClienteSelecionado(e.target.value)}
-            options={opcoesClientes}
-            placeholder="Selecione um cliente..."
-            isClearable={true}
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite o nome do nome, telefone, bairro, data..."
           />
 
           <div className="filter-bar">

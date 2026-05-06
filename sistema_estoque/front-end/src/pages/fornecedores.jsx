@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
-import FormSelectSearch from "../components/FormSelectSearch";
+import SearchBar from "../components/SearchBarPage";
 
 function Fornecedores() {
   const pageUrl = (p) => `/fornecedores/?page=${p}`;
@@ -18,8 +18,8 @@ function Fornecedores() {
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
 
-  // busca
-  const [fornecedorSelecionado, setFornecedorSelecionado] = useState("");
+  //barra de pesquisa de vendas
+  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroUF, setFiltroUF] = useState("");
@@ -142,7 +142,21 @@ function Fornecedores() {
 
   const fornecedoresFiltrados = sortData(
     fornecedores.filter((f) => {
-      if (fornecedorSelecionado && f.id_fornecedor !== fornecedorSelecionado) return false;
+      const texto = termoBusca.toLowerCase().trim();
+      
+      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
+      const bateBusca =
+        !texto ||
+        String(f.id_fornecedor || "").toLowerCase().includes(texto) ||
+        String(f.razao_social || "").toLowerCase().includes(texto) ||
+        String(f.nome_fantasia || "").toLowerCase().includes(texto) ||
+        String(f.cnpj || "").toLowerCase().includes(texto) ||
+        String(f.cidade || "").toLowerCase().includes(texto) ||
+        String(f.uf || "").toLowerCase().includes(texto) ||
+        String(f.avaliacao || "").toLowerCase().includes(texto) ||
+        String(f.telefone || "").toLowerCase().includes(texto);
+
+      if (!bateBusca) return false;
       if (filtroUF && f.uf !== filtroUF) return false;
       return true;
     })
@@ -173,14 +187,11 @@ function Fornecedores() {
 
       {fornecedores.length > 0 && (
         <>
-          <FormSelectSearch
+          <SearchBar
             label="Pesquisar fornecedor"
-            name="fornecedorSelecionado"
-            value={fornecedorSelecionado}
-            onChange={(e) => setFornecedorSelecionado(e.target.value)}
-            options={opcoesFornecedores}
-            placeholder="Selecione um fornecedor..."
-            isClearable={true}
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Digite a razão social, nome, cnpj, cidade, uf, telefone..."
           />
 
           <div className="filter-bar">

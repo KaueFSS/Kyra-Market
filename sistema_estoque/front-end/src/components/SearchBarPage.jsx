@@ -21,6 +21,7 @@ function SearchBarPage({
 
       <input
         type="text"
+        className="searchbar-page-input"
         value={value}
         onChange={onChange}
         placeholder={placeholder}
@@ -30,10 +31,11 @@ function SearchBarPage({
           padding: "12px 14px",
           borderRadius: "8px",
           border: "1px solid #415e98",
-          backgroundColor: "#1f2246",
+          backgroundColor: "#1a1d2e",
           color: "#ffffff",
           outline: "none",
           fontSize: "1rem",
+          placeholder: "#8b8fa8",
         }}
       />
     </div>
