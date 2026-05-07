@@ -33,7 +33,7 @@ print("=" * 55)
 print("\n[1/5] Verificando dependências Python...")
 subprocess.run([sys.executable, "-m", "pip", "install", "-r", requirements],
                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-print("      ✓ OK")
+print("       OK")
 
 # ───────────────────────────────────────────────
 # Dependências Node
@@ -43,7 +43,7 @@ if not os.path.exists(node_modules):
     print("      Executando npm install...")
     subprocess.run(["npm", "install"], cwd=pasta_frontend, shell=True, check=True)
 else:
-    print("      ✓ OK")
+    print("       OK")
 
 # ───────────────────────────────────────────────
 # Iniciar Backend Django
@@ -56,7 +56,7 @@ backend = subprocess.Popen(
     stderr=subprocess.DEVNULL,
 )
 time.sleep(2)
-print("      ✓ http://localhost:8000")
+print("       http://localhost:8000")
 
 # ───────────────────────────────────────────────
 # Iniciar Frontend Vite
@@ -69,7 +69,7 @@ frontend = subprocess.Popen(
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL,
 )
-print("      ✓ http://localhost:5173")
+print("       http://localhost:5173")
 
 # ───────────────────────────────────────────────
 # Iniciar Metabase (silencioso — sem abrir browser)
@@ -99,7 +99,7 @@ else:
 # ───────────────────────────────────────────────
 time.sleep(3)
 webbrowser.open("http://localhost:5173")
-print("\n      ✓ Sistema aberto em http://localhost:5173")
+print("\n       Sistema aberto em http://localhost:5173")
 
 # ───────────────────────────────────────────────
 # Rotina em background: aguarda Metabase e
@@ -158,9 +158,9 @@ def corrigir_banco_metabase(token):
                              data={"details": details}, token=token)
                     # Força re-sync do schema
                     api_call("POST", f"/api/database/{db_id}/sync_schema", token=token)
-                    print("      ✓ Banco atualizado e sincronizado!")
+                    print("       Banco atualizado e sincronizado!")
                 else:
-                    print("\n      [Metabase] ✓ Caminho do banco já está correto.")
+                    print("\n      [Metabase]  Caminho do banco já está correto.")
                     # Sincroniza de qualquer forma para garantir dados atualizados
                     api_call("POST", f"/api/database/{db_id}/sync_schema", token=token)
                 return
@@ -179,7 +179,7 @@ def rotina_metabase():
         print("      [Metabase] Timeout — verifique se Java está instalado.")
         return
 
-    print("      [Metabase] ✓ Online!")
+    print("      [Metabase]  Online!")
 
     # Login
     if not os.path.exists(creds_path):
@@ -203,7 +203,7 @@ def rotina_metabase():
         print("      [Metabase] Login falhou.")
         return
 
-    print("      [Metabase] ✓ Login OK")
+    print("      [Metabase]  Login OK")
 
     # Corrige o caminho do banco
     corrigir_banco_metabase(token)
