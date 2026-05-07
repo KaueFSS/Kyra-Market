@@ -24,6 +24,8 @@ function EditarCliente() {
   const [erros, setErros]   = useState({});
   const [erro, setErro]     = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [pagamentoFiado, setPagamentoFiado] = useState("");
+  const [pagandoFiado, setPagandoFiado] = useState(false);
 
   useEffect(() => {
     api.get(`/clientes/${id}/`).then((res) => setForm(res.data));
@@ -48,10 +50,35 @@ function EditarCliente() {
       invalidateCache("/clientes/?page=1");
       showToast("Cliente atualizado com sucesso!", "success");
       setTimeout(() => navigate(`/clientes?highlight=${id}`), 900);
-    } catch {
-      setErro("Erro ao atualizar cliente.");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao atualizar cliente.");
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function pagarFiado() {
+    const valor = Number(pagamentoFiado || 0);
+    if (valor <= 0) {
+      setErro("Informe um valor de pagamento maior que zero.");
+      return;
+    }
+
+    setPagandoFiado(true);
+    try {
+      const res = await api.post("/pagar-fiado/", {
+        cliente: id,
+        valor: valor.toFixed(2),
+      });
+      setForm(res.data);
+      setPagamentoFiado("");
+      setErro("");
+      invalidateCache("/clientes/?page=1");
+      showToast("Pagamento de fiado registrado!", "success");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao registrar pagamento de fiado.");
+    } finally {
+      setPagandoFiado(false);
     }
   }
 
@@ -75,6 +102,22 @@ function EditarCliente() {
         <p style={{ margin: "6px 0 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
           Total em compras: <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(form.total_valor)}</strong>
         </p>
+        {Number(form.saldo_fiado || 0) > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <FormInput
+              label="Pagamento de fiado (R$)"
+              name="pagamento_fiado"
+              type="number"
+              step="0.01"
+              value={pagamentoFiado}
+              onChange={(e) => setPagamentoFiado(e.target.value)}
+              placeholder="0.00"
+            />
+            <button type="button" className="btn btn-primary" onClick={pagarFiado} disabled={pagandoFiado}>
+              {pagandoFiado ? "Registrando..." : "Registrar Pagamento"}
+            </button>
+          </div>
+        )}
       </div>
 
       <MensagemErro mensagem={erro} />

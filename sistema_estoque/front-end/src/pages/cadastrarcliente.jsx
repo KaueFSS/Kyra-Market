@@ -17,8 +17,6 @@ const estadoInicial = {
   possui_fiado: "false",
   saldo_fiado: "0.00",
   data_cadastro: new Date().toISOString().split("T")[0],
-  total_valor: "0.00",
-  ultima_compra: "",
 };
 
 function validar(c) {
@@ -45,7 +43,16 @@ function CadastrarCliente() {
     const { name, value } = e.target;
     let val = value;
     if (name === "telefone") val = mascaraTelefone(value);
-    setCliente(prev => ({ ...prev, [name]: val }));
+    setCliente(prev => {
+      const proximo = { ...prev, [name]: val };
+      if (name === "saldo_fiado" && Number(val || 0) > 0) {
+        proximo.possui_fiado = "true";
+      }
+      if (name === "possui_fiado" && val === "false") {
+        proximo.saldo_fiado = "0.00";
+      }
+      return proximo;
+    });
     if (erros[name]) setErros(prev => ({ ...prev, [name]: "" }));
   }
 
@@ -56,18 +63,16 @@ function CadastrarCliente() {
     const dados = {
       ...cliente,
       id_cliente:   gerarIdSequencial(clientes, "id_cliente", "CLI"),
-      possui_fiado: cliente.possui_fiado === "true",
+      possui_fiado: Number(cliente.saldo_fiado || 0) > 0 || cliente.possui_fiado === "true",
       saldo_fiado:  Number(cliente.saldo_fiado || 0).toFixed(2),
-      total_valor:  Number(cliente.total_valor || 0).toFixed(2),
-      ultima_compra: cliente.ultima_compra || null,
     };
     try {
       const criado = await criarDado("/clientes/", dados);
       invalidateCache("/clientes/?page=1");
       setClientes(prev => [...prev, criado]);
       navigate(`/clientes?highlight=${criado.id_cliente}`);
-    } catch {
-      setErro("Erro ao cadastrar cliente. Verifique os campos.");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao cadastrar cliente. Verifique os campos.");
     } finally {
       setSalvando(false);
     }
@@ -94,10 +99,8 @@ function CadastrarCliente() {
         <FormSelect label="Possui Fiado" name="possui_fiado" value={cliente.possui_fiado} onChange={alterarCampo}
           options={[{ value: "false", label: "Não" }, { value: "true", label: "Sim" }]}
         />
-        <FormInput label="Saldo Fiado (R$)" name="saldo_fiado" type="number" step="0.01" value={cliente.saldo_fiado} onChange={alterarCampo} placeholder="0.00" />
+        <FormInput label="Saldo inicial de fiado (R$)" name="saldo_fiado" type="number" step="0.01" value={cliente.saldo_fiado} onChange={alterarCampo} placeholder="0.00" hint="Saldo maior que zero marca fiado automaticamente." />
         <FormInput label="Data de Cadastro" name="data_cadastro" type="date" value={cliente.data_cadastro} onChange={alterarCampo} required />
-        <FormInput label="Total em Compras (R$)" name="total_valor" type="number" step="0.01" value={cliente.total_valor} onChange={alterarCampo} placeholder="0.00" />
-        <FormInput label="Última Compra" name="ultima_compra" type="date" value={cliente.ultima_compra} onChange={alterarCampo} />
 
         <div className="form-actions">
           <BotaoSalvar texto={salvando ? "Salvando…" : "Cadastrar Cliente"} />

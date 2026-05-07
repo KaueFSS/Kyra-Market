@@ -47,8 +47,8 @@ function EditarCompra() {
       showToast("Compra atualizada com sucesso!", "success");
       setTimeout(() => navigate(`/compras?highlight=${id}`), 900);
       setErro("");
-    } catch {
-      setErro("Erro ao atualizar compra.");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao atualizar compra.");
     }
   }
 

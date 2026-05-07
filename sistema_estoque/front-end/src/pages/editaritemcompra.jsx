@@ -31,8 +31,8 @@ function EditarItemCompra() {
       });
       setMensagem("Item atualizado com sucesso!");
       setErro("");
-    } catch {
-      setErro("Erro ao atualizar item de compra.");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao atualizar item de compra.");
       setMensagem("");
     }
   }

@@ -1,5 +1,19 @@
+from decimal import Decimal
+
 from rest_framework import serializers
-from .models import Produto, Estoque, Fornecedor, Funcionario, CompraFornecedor, ItemCompra, Despesa, ItemVenda, Venda, Cliente
+from .models import (
+    Cliente,
+    CompraFornecedor,
+    Despesa,
+    Estoque,
+    Fornecedor,
+    Funcionario,
+    ItemCompra,
+    ItemVenda,
+    MovimentoFiado,
+    Produto,
+    Venda,
+)
 
 class ProdutoSerializer(serializers.ModelSerializer):
     fornecedor_nome = serializers.CharField(source='fornecedor.nome_fantasia', read_only=True, default=None)
@@ -41,6 +55,7 @@ class CompraFornecedorSerializer(serializers.ModelSerializer):
     fornecedor_nome = serializers.CharField(source='fornecedor.razao_social', read_only=True)
     funcionario_nome = serializers.CharField(source='funcionario.nome', read_only=True)
     itens = ItemCompraSerializer(many=True, read_only=True)
+    valor_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = CompraFornecedor
@@ -56,6 +71,7 @@ class DespesaSerializer(serializers.ModelSerializer):
 
 class ItemVendaSerializer(serializers.ModelSerializer):
     produto_nome = serializers.CharField(source='produto.nome', read_only=True) # pega o nome de cada produto
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     # many=True porque são vários itens
     # read_only=True porque não vamos criar/editar itens por aqui
 
@@ -89,14 +105,42 @@ class ClienteSerializer(serializers.ModelSerializer):
         model = Cliente
         fields = '__all__'
 
+    def validate(self, attrs):
+        if self.instance is not None:
+            for campo in ('saldo_fiado', 'possui_fiado', 'total_valor', 'ultima_compra'):
+                attrs.pop(campo, None)
+            return attrs
+
+        saldo = attrs.get('saldo_fiado') or 0
+        if saldo > 0:
+            attrs['possui_fiado'] = True
+        else:
+            attrs['possui_fiado'] = False
+            attrs['saldo_fiado'] = 0
+        return attrs
+
+    def update(self, instance, validated_data):
+        for campo in ('saldo_fiado', 'possui_fiado', 'total_valor', 'ultima_compra'):
+            validated_data.pop(campo, None)
+        return super().update(instance, validated_data)
+
+
+class MovimentoFiadoSerializer(serializers.ModelSerializer):
+    cliente_nome = serializers.CharField(source='cliente.nome', read_only=True)
+
+    class Meta:
+        model = MovimentoFiado
+        fields = '__all__'
+        read_only_fields = fields
+
 
 # --- Serializers de input para endpoints atômicos ---
 
 class ItemVendaInputSerializer(serializers.Serializer):
     produto = serializers.CharField()
     quantidade_vendida = serializers.IntegerField(min_value=1)
-    preco_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
-    desconto_aplicado = serializers.DecimalField(max_digits=5, decimal_places=2, min_value=0, default=0)
+    preco_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.00"))
+    desconto_aplicado = serializers.DecimalField(max_digits=5, decimal_places=2, min_value=Decimal("0.00"), default=0)
 
 
 class RegistrarVendaSerializer(serializers.Serializer):
@@ -119,7 +163,7 @@ class RegistrarVendaSerializer(serializers.Serializer):
 class ItemCompraInputSerializer(serializers.Serializer):
     produto = serializers.CharField()
     quantidade = serializers.IntegerField(min_value=1)
-    valor_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    valor_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.00"))
 
 
 class RegistrarCompraSerializer(serializers.Serializer):
@@ -131,7 +175,7 @@ class RegistrarCompraSerializer(serializers.Serializer):
     entregue = serializers.BooleanField(default=False)
     data_entrega = serializers.DateField(required=False, allow_null=True)
     nota_fiscal = serializers.CharField(required=False, allow_blank=True, default='')
-    valor_total = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    valor_total = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.00"), required=False)
     itens = ItemCompraInputSerializer(many=True)
 
     def validate(self, data):
@@ -142,4 +186,4 @@ class RegistrarCompraSerializer(serializers.Serializer):
 
 class PagarFiadoSerializer(serializers.Serializer):
     cliente = serializers.CharField()
-    valor = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)
+    valor = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"))

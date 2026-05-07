@@ -24,9 +24,8 @@ function EditarItemVenda() {
 
   const qtd = parseInt(form?.quantidade_vendida) || 0;
   const preco = parseFloat(form?.preco_unitario) || 0;
-  const descontoPct = parseFloat(form?.desconto_aplicado) || 0;
+  const descontoValor = parseFloat(form?.desconto_aplicado) || 0;
   const totalBruto = qtd * preco;
-  const descontoValor = totalBruto * (descontoPct / 100);
   const subtotal = totalBruto - descontoValor;
 
   async function handleSubmit(e) {
@@ -36,12 +35,11 @@ function EditarItemVenda() {
         quantidade_vendida: qtd,
         preco_unitario: preco,
         desconto_aplicado: descontoValor,
-        subtotal,
       });
       setMensagem("Item atualizado com sucesso!");
       setErro("");
-    } catch {
-      setErro("Erro ao atualizar item de venda.");
+    } catch (error) {
+      setErro(error.response?.data?.erro || "Erro ao atualizar item de venda.");
       setMensagem("");
     }
   }
@@ -70,7 +68,7 @@ function EditarItemVenda() {
           </div>
         </div>
 
-        <FormInput label="Desconto (%)" name="desconto_aplicado" type="number" step="1" value={form.desconto_aplicado} onChange={handleChange} />
+        <FormInput label="Desconto (R$)" name="desconto_aplicado" type="number" step="0.01" value={form.desconto_aplicado} onChange={handleChange} />
 
         <div className="form-group">
           <label className="form-label">Subtotal calculado</label>

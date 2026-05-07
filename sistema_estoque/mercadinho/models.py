@@ -208,6 +208,72 @@ class Cliente(models.Model):
         return f"{self.id_cliente} - {self.nome}"
 
 
+class MovimentoFiado(models.Model):
+    SALDO_INICIAL = "saldo_inicial"
+    VENDA_FIADA = "venda_fiada"
+    PAGAMENTO = "pagamento"
+    AJUSTE_EDICAO = "ajuste_edicao"
+
+    TIPOS = [
+        (SALDO_INICIAL, "Saldo inicial"),
+        (VENDA_FIADA, "Venda fiada"),
+        (PAGAMENTO, "Pagamento"),
+        (AJUSTE_EDICAO, "Ajuste por edicao"),
+    ]
+
+    id_movimento = models.AutoField(primary_key=True)
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="movimentos_fiado",
+        db_column="id_cliente",
+        verbose_name="Cliente",
+    )
+    venda = models.ForeignKey(
+        "Venda",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movimentos_fiado",
+        db_column="id_venda",
+        verbose_name="Venda vinculada",
+    )
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+        verbose_name="Tipo",
+    )
+    valor = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Valor",
+    )
+    saldo_anterior = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name="Saldo anterior",
+    )
+    saldo_atual = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name="Saldo atual",
+    )
+    criado_em = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Criado em",
+    )
+
+    class Meta:
+        verbose_name = "Movimento de fiado"
+        verbose_name_plural = "Movimentos de fiado"
+        ordering = ["-criado_em", "-id_movimento"]
+
+    def __str__(self):
+        return f"{self.cliente_id} - {self.tipo} - {self.valor}"
+
+
 class Produto(models.Model):
     id_produto = models.CharField(
         max_length=10,

@@ -48,7 +48,7 @@ function EditarVenda() {
       setErro("");
     } catch (error) {
       console.error(error.response?.data);
-      setErro("Erro ao atualizar venda.");
+      setErro(error.response?.data?.erro || "Erro ao atualizar venda.");
     }
   }
 
