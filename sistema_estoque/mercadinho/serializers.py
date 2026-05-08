@@ -85,10 +85,12 @@ class VendaSerializer(serializers.ModelSerializer):
     cliente_nome = serializers.CharField(source='cliente.nome', read_only=True, default=None)
     itens_nomes = serializers.SerializerMethodField() # cria um campo que não existe no banco para nome dos itens
     total = serializers.SerializerMethodField() # cria um campo que não existe no banco para o total da venda
+    itens = ItemVendaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Venda
         fields = '__all__'
+        read_only_fields = ('id_venda', 'produtos')
 
     def get_total(self, obj):
         total = 0

@@ -4,6 +4,7 @@ import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
+import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import SearchBar from "../components/SearchBarPage";
 
 function Fornecedores() {
@@ -116,10 +117,12 @@ function Fornecedores() {
     if (!ok) return;
     setExcluindo(true);
     try {
-      await Promise.all([...selecionados].map((id) => api.delete(`/fornecedores/${id}/`)));
+      const ids = [...selecionados];
+      const { excluidos, falhas } = await excluirEmLote(api, "/fornecedores", ids);
       invalidateCache(pageUrl(pagina));
-      setSelecionados(new Set());
-      showToast(`${selecionados.size} fornecedor(es) excluído(s).`, "success");
+      setSelecionados(new Set(falhas.map((falha) => falha.id)));
+      if (excluidos.length) showToast(`${excluidos.length} fornecedor(es) excluido(s).`, "success");
+      if (falhas.length) showToast(mensagemFalhasExclusao(falhas), "error");
       const res = await cachedGet(api, pageUrl(pagina));
       const { data, next, previous } = parseListResponse(res);
       setFornecedores(data);

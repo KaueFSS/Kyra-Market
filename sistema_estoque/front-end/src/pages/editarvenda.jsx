@@ -32,7 +32,16 @@ function EditarVenda() {
 
   async function salvar() {
     try {
-      await api.patch(`/vendas/${id}/`, { ...form, cliente: form.cliente || null });
+      const payload = {
+        nome: form.nome || "",
+        data_venda: form.data_venda,
+        hora: form.hora,
+        forma_pagamento: form.forma_pagamento,
+        funcionario: form.funcionario,
+        cliente: form.cliente || null,
+      };
+
+      await api.patch(`/vendas/${id}/`, payload);
       invalidateCache("/vendas/?page=1");
       showToast("Venda atualizada com sucesso!", "success");
       setTimeout(() => navigate(`/vendas?highlight=${id}`), 900);

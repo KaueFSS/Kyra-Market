@@ -4,6 +4,7 @@ import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
+import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import { formatarMoeda } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
 
@@ -119,10 +120,12 @@ function Produtos() {
     if (!ok) return;
     setExcluindo(true);
     try {
-      await Promise.all([...selecionados].map((id) => api.delete(`/produtos/${id}/`)));
+      const ids = [...selecionados];
+      const { excluidos, falhas } = await excluirEmLote(api, "/produtos", ids);
       invalidateCache(pageUrl(pagina));
-      setSelecionados(new Set());
-      showToast(`${selecionados.size} produto(s) excluído(s).`, "success");
+      setSelecionados(new Set(falhas.map((falha) => falha.id)));
+      if (excluidos.length) showToast(`${excluidos.length} produto(s) excluido(s).`, "success");
+      if (falhas.length) showToast(mensagemFalhasExclusao(falhas), "error");
       const res = await cachedGet(api, pageUrl(pagina));
       const { data, next, previous } = parseListResponse(res);
       setProdutos(data);

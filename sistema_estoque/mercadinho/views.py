@@ -3,6 +3,7 @@ from datetime import date
 
 from django.db import transaction
 from django.db.models import F, Q, Sum
+from django.db.models.deletion import ProtectedError
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -55,7 +56,7 @@ from .services import (
 
 
 def gerar_id(prefix):
-    return f"{prefix}{uuid.uuid4().hex[:8].upper()}"
+    return f"{prefix}{uuid.uuid4().hex[:7].upper()}"
 
 
 def gerar_id_despesa():
@@ -64,6 +65,30 @@ def gerar_id_despesa():
 
 def descricao_despesa_compra(compra):
     return f"Compra {compra.id_compra} - {compra.fornecedor.razao_social}"[:100]
+
+
+def formatar_erro_exclusao_protegida(exc):
+    protegidos = list(exc.protected_objects)
+    tipos = sorted({obj._meta.verbose_name for obj in protegidos})
+    detalhes = ", ".join(tipos[:3]) or "outros registros"
+    if len(tipos) > 3:
+        detalhes += "..."
+
+    return (
+        "Nao e possivel excluir este registro porque ele esta vinculado a "
+        f"{len(protegidos)} registro(s): {detalhes}."
+    )
+
+
+class ProtectedDestroyMixin:
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError as e:
+            return Response(
+                {"erro": formatar_erro_exclusao_protegida(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 def sincronizar_despesa_compra(compra):
@@ -88,7 +113,7 @@ def sincronizar_despesa_compra(compra):
     return despesa
 
 
-class ProdutoViewSet(viewsets.ModelViewSet):
+class ProdutoViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
     queryset = Produto.objects.select_related('fornecedor').all()
     serializer_class = ProdutoSerializer
     filter_backends = [filters.SearchFilter]
@@ -97,6 +122,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         'codigo_barras', 'unidade',
         'fornecedor__razao_social', 'fornecedor__nome_fantasia',
     ]
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            Estoque.objects.filter(produto=instance).delete()
+            instance.delete()
 
 
 class EstoqueViewSet(viewsets.ModelViewSet):
@@ -117,7 +147,7 @@ class EstoqueViewSet(viewsets.ModelViewSet):
         })
 
 
-class FornecedorViewSet(viewsets.ModelViewSet):
+class FornecedorViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
     queryset = Fornecedor.objects.all()
     serializer_class = FornecedorSerializer
     filter_backends = [filters.SearchFilter]
@@ -127,7 +157,7 @@ class FornecedorViewSet(viewsets.ModelViewSet):
     ]
 
 
-class FuncionarioViewSet(viewsets.ModelViewSet):
+class FuncionarioViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
     queryset = Funcionario.objects.all()
     serializer_class = FuncionarioSerializer
     filter_backends = [filters.SearchFilter]
@@ -474,7 +504,7 @@ class VendaViewSet(viewsets.ModelViewSet):
         })
 
 
-class ClienteViewSet(viewsets.ModelViewSet):
+class ClienteViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
     filter_backends = [filters.SearchFilter]

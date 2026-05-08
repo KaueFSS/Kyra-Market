@@ -52,7 +52,7 @@ def ajustar_estoque(produto, delta, data_movimento=None):
     estoque.save()
 
 
-def registrar_movimento_fiado(cliente, tipo, valor, venda=None):
+def registrar_movimento_fiado(cliente, tipo, valor, venda=None, limitar_saldo_zero=False):
     valor = Decimal(valor)
     if valor == 0:
         return None
@@ -62,9 +62,15 @@ def registrar_movimento_fiado(cliente, tipo, valor, venda=None):
     saldo_atual = saldo_anterior + valor
 
     if saldo_atual < 0:
-        raise ValueError(
-            f"Movimento de fiado deixaria saldo negativo para '{cliente.nome}'."
-        )
+        if limitar_saldo_zero:
+            valor = -saldo_anterior
+            saldo_atual = ZERO
+            if valor == 0:
+                return None
+        else:
+            raise ValueError(
+                f"Movimento de fiado deixaria saldo negativo para '{cliente.nome}'."
+            )
 
     cliente.saldo_fiado = saldo_atual
     cliente.possui_fiado = saldo_atual > 0
@@ -129,6 +135,7 @@ def ajustar_fiado_por_alteracao_venda(
             MovimentoFiado.AJUSTE_EDICAO,
             total_atual - total_anterior,
             venda=venda,
+            limitar_saldo_zero=True,
         )
         return
 
@@ -138,6 +145,7 @@ def ajustar_fiado_por_alteracao_venda(
             MovimentoFiado.AJUSTE_EDICAO,
             -total_anterior,
             venda=venda,
+            limitar_saldo_zero=True,
         )
 
     if tem_fiado:
@@ -168,6 +176,7 @@ def desfazer_fiado_venda(venda):
             MovimentoFiado.AJUSTE_EDICAO,
             -calcular_total_venda(venda),
             venda=venda,
+            limitar_saldo_zero=True,
         )
 
 

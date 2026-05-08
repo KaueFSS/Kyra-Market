@@ -166,10 +166,32 @@ class RegrasFinanceirasTests(APITestCase):
             format="json",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         cliente.refresh_from_db()
         self.assertEqual(cliente.saldo_fiado, Decimal("0.00"))
         self.assertFalse(cliente.possui_fiado)
+
+    def test_editar_venda_com_payload_completo_da_tela(self):
+        self.criar_cliente()
+        response = self.registrar_venda()
+        venda_id = response.data["id_venda"]
+
+        detalhes = self.client.get(f"/api/vendas/{venda_id}/")
+        payload = dict(detalhes.data)
+        payload["nome"] = "Venda editada"
+        payload["forma_pagamento"] = "pix"
+        payload["cliente"] = None
+
+        response = self.client.patch(
+            f"/api/vendas/{venda_id}/",
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["nome"], "Venda editada")
+        self.assertIn("itens", response.data)
+        self.assertEqual(len(response.data["itens"]), 1)
 
     def test_editar_pix_para_fiado_exige_cliente_e_adiciona_saldo(self):
         cliente = self.criar_cliente()
@@ -230,6 +252,71 @@ class RegrasFinanceirasTests(APITestCase):
         self.assertEqual(cliente.saldo_fiado, Decimal("0.00"))
         self.assertEqual(cliente.total_valor, Decimal("0.00"))
         self.assertEqual(self.estoque.quantidade_atual, 10)
+
+    def test_editar_e_excluir_venda_fiada_ja_paga_zeram_saldo(self):
+        cliente = self.criar_cliente()
+        response = self.registrar_venda()
+        venda_id = response.data["id_venda"]
+
+        pagamento = self.client.post(
+            "/api/pagar-fiado/",
+            {"cliente": cliente.pk, "valor": "15.00"},
+            format="json",
+        )
+        self.assertEqual(pagamento.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(
+            f"/api/vendas/{venda_id}/",
+            {"forma_pagamento": "pix", "cliente": None},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        cliente.refresh_from_db()
+        self.assertEqual(cliente.saldo_fiado, Decimal("0.00"))
+
+        response = self.registrar_venda()
+        venda_id = response.data["id_venda"]
+        pagamento = self.client.post(
+            "/api/pagar-fiado/",
+            {"cliente": cliente.pk, "valor": "20.00"},
+            format="json",
+        )
+        self.assertEqual(pagamento.status_code, status.HTTP_200_OK)
+
+        response = self.client.delete(f"/api/vendas/{venda_id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        cliente.refresh_from_db()
+        self.estoque.refresh_from_db()
+        self.assertEqual(cliente.saldo_fiado, Decimal("0.00"))
+        self.assertEqual(self.estoque.quantidade_atual, 8)
+
+    def test_excluir_cadastros_vinculados_retorna_erro_claro(self):
+        cliente = self.criar_cliente()
+        venda = self.registrar_venda()
+        compra = self.registrar_compra(entregue=False)
+        self.assertEqual(venda.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(compra.status_code, status.HTTP_201_CREATED)
+
+        endpoints = [
+            f"/api/clientes/{cliente.pk}/",
+            f"/api/funcionarios/{self.funcionario.pk}/",
+            f"/api/produtos/{self.produto.pk}/",
+            f"/api/fornecedores/{self.fornecedor.pk}/",
+        ]
+
+        for endpoint in endpoints:
+            response = self.client.delete(endpoint)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, endpoint)
+            self.assertIn("erro", response.data)
+            self.assertIn("vinculado", response.data["erro"])
+
+    def test_excluir_produto_sem_historico_remove_estoque_junto(self):
+        response = self.client.delete(f"/api/produtos/{self.produto.pk}/")
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Produto.objects.filter(pk=self.produto.pk).exists())
+        self.assertFalse(Estoque.objects.filter(pk=self.estoque.pk).exists())
 
     def test_compra_entregue_altera_estoque_total_e_despesa(self):
         response = self.registrar_compra(entregue=True, quantidade=4)

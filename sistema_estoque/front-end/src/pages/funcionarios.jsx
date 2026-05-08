@@ -4,6 +4,7 @@ import api from "../services/api";
 import { cachedGet, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
+import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
@@ -122,10 +123,12 @@ function Funcionarios() {
     if (!ok) return;
     setExcluindo(true);
     try {
-      await Promise.all([...selecionados].map((id) => api.delete(`/funcionarios/${id}/`)));
+      const ids = [...selecionados];
+      const { excluidos, falhas } = await excluirEmLote(api, "/funcionarios", ids);
       invalidateCache(pageUrl(pagina));
-      setSelecionados(new Set());
-      showToast(`${selecionados.size} funcionário(s) excluído(s).`, "success");
+      setSelecionados(new Set(falhas.map((falha) => falha.id)));
+      if (excluidos.length) showToast(`${excluidos.length} funcionario(s) excluido(s).`, "success");
+      if (falhas.length) showToast(mensagemFalhasExclusao(falhas), "error");
       const res = await cachedGet(api, pageUrl(pagina));
       const data = res.data;
       setFuncionarios(Array.isArray(data) ? data : (data.results ?? []));
