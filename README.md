@@ -21,7 +21,7 @@ O script cuida de tudo sozinho: instala as dependências Python e Node, sobe o b
 | Usuário | `Usuario` |
 | Senha | `12345` |
 
-> **Requisitos mínimos:** Python 3.10+, Node.js 18+ e Java 11+ para o Metabase.
+> **Requisitos mínimos:** Python 3.10+, Node.js 18+ e (opcional) Java 11+ para o Metabase.
 
 ---
 
