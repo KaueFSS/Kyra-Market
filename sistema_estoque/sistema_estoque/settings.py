@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-enc05-2u3cs3dpl58(s7#1%8zri3ra4h5v*-o@9ponn)s88nm^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# '*' permite acesso por qualquer host (localhost, IP da LAN, IP do Radmin VPN).
+# Como DEBUG=True (ambiente de desenvolvimento/compartilhado), tudo bem.
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -124,17 +127,45 @@ LOGIN_REDIRECT_URL = '/api/'
 
 # configuração do Django REST Framework
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
+    # Sem autenticação por sessão → sem necessidade de CSRF token nos POST/PUT/DELETE.
+    # O app é aberto (AllowAny) e roda em rede local/Radmin onde a confiança vem da rede.
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 500
+    'PAGE_SIZE': 100,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
 }
+
+# CSRF — confia em qualquer origem da LAN/Radmin (segurança por rede privada).
+# Necessário no Django 4+ pra POST/PUT/DELETE cross-origin funcionarem.
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173", "http://localhost:8000",
+    "http://127.0.0.1:5173", "http://127.0.0.1:8000",
+]
+# Adiciona dinamicamente os IPs locais ao CSRF_TRUSTED_ORIGINS
+import socket as _sock
+try:
+    _hostname = _sock.gethostname()
+    for _ip in _sock.gethostbyname_ex(_hostname)[2]:
+        for _porta in (5173, 8000, 3000):
+            CSRF_TRUSTED_ORIGINS.append(f"http://{_ip}:{_porta}")
+except Exception:
+    pass
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+]
+
+# Permite que qualquer origem com IP da LAN/Radmin (192.168.x.x, 10.x.x.x, 26.x.x.x)
+# acesse a API. Combinado com DEBUG=True, deixa o site funcionar em rede local.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://192\.168\.\d+\.\d+:\d+$",
+    r"^http://10\.\d+\.\d+\.\d+:\d+$",
+    r"^http://26\.\d+\.\d+\.\d+:\d+$",
+    r"^http://172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$",
 ]
