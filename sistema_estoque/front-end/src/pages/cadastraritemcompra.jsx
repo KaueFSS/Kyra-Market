@@ -6,6 +6,7 @@ import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
 import { formatarMoeda } from "../utils/formatadores";
+import { formatarErroAPI } from "../utils/errosApi";
 
 const estadoInicial = { compra: "", produto: "", quantidade: "", valor_unitario: "" };
 
@@ -47,7 +48,7 @@ function CadastrarItemCompra() {
       setErro("");
       setItem(estadoInicial);
     } catch (err) {
-      setErro(err.response?.data?.erro || "Erro ao cadastrar item de compra.");
+      setErro(formatarErroAPI(err, "Erro ao cadastrar item de compra."));
       setMensagem("");
     }
   }

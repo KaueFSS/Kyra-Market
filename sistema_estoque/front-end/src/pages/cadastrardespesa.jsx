@@ -6,6 +6,8 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
+import { formatarErroAPI } from "../utils/errosApi";
+import { invalidateCache } from "../utils/apiCache";
 
 function gerarIdDespesa() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -39,10 +41,11 @@ function CadastrarDespesa() {
     const payload = { ...form, recorrente: form.recorrente === "true", compra: form.compra || null };
     try {
       await criarDado("/despesas/", { ...payload, id_despesa: gerarIdDespesa() });
+      invalidateCache("/despesas/");
       setMensagem("Despesa cadastrada com sucesso!");
       setForm({ funcionario: "", compra: "", data: hoje, categoria: "", descricao: "", valor: "0.00", recorrente: "false" });
-    } catch {
-      setErro("Erro ao cadastrar despesa. Verifique os campos.");
+    } catch (err) {
+      setErro(formatarErroAPI(err, "Erro ao cadastrar despesa. Verifique os campos."));
       setMensagem("");
     }
   }

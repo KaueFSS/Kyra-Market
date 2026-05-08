@@ -3,7 +3,7 @@ from datetime import date
 
 from django.db import transaction
 from django.db.models import F, Q, Sum
-from rest_framework import status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
@@ -89,13 +89,21 @@ def sincronizar_despesa_compra(compra):
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
-    queryset = Produto.objects.all()
+    queryset = Produto.objects.select_related('fornecedor').all()
     serializer_class = ProdutoSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'id_produto', 'nome', 'categoria', 'subcategoria', 'marca',
+        'codigo_barras', 'unidade',
+        'fornecedor__razao_social', 'fornecedor__nome_fantasia',
+    ]
 
 
 class EstoqueViewSet(viewsets.ModelViewSet):
     queryset = Estoque.objects.select_related("produto").all()
     serializer_class = EstoqueSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id_estoque', 'produto__nome', 'produto__id_produto']
 
     @action(detail=False, methods=["get"], url_path="alerta-minimo")
     def alerta(self, request):
@@ -112,11 +120,18 @@ class EstoqueViewSet(viewsets.ModelViewSet):
 class FornecedorViewSet(viewsets.ModelViewSet):
     queryset = Fornecedor.objects.all()
     serializer_class = FornecedorSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'id_fornecedor', 'razao_social', 'nome_fantasia',
+        'cnpj', 'cidade', 'uf', 'email', 'telefone',
+    ]
 
 
 class FuncionarioViewSet(viewsets.ModelViewSet):
     queryset = Funcionario.objects.all()
     serializer_class = FuncionarioSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id_funcionario', 'nome', 'cargo', 'turno']
 
 
 class CompraFornecedorViewSet(viewsets.ModelViewSet):
@@ -124,6 +139,12 @@ class CompraFornecedorViewSet(viewsets.ModelViewSet):
         "fornecedor", "funcionario"
     ).prefetch_related("itens").all()
     serializer_class = CompraFornecedorSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'id_compra', 'nome', 'nota_fiscal', 'status',
+        'fornecedor__razao_social', 'fornecedor__nome_fantasia',
+        'funcionario__nome',
+    ]
 
     def perform_update(self, serializer):
         try:
@@ -268,6 +289,11 @@ class ItemCompraViewSet(viewsets.ModelViewSet):
 class DespesaViewSet(viewsets.ModelViewSet):
     queryset = Despesa.objects.select_related("funcionario").all()
     serializer_class = DespesaSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'id_despesa', 'categoria', 'descricao',
+        'funcionario__nome', 'compra__id_compra',
+    ]
 
     @action(detail=False, methods=["get"], url_path="por-categoria")
     def por_categoria(self, request):
@@ -386,6 +412,11 @@ class VendaViewSet(viewsets.ModelViewSet):
         "itens"
     ).all()
     serializer_class = VendaSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'id_venda', 'nome', 'forma_pagamento',
+        'cliente__nome', 'funcionario__nome',
+    ]
 
     def perform_update(self, serializer):
         try:
@@ -446,6 +477,8 @@ class VendaViewSet(viewsets.ModelViewSet):
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id_cliente', 'nome', 'telefone', 'bairro']
 
     def perform_create(self, serializer):
         with transaction.atomic():

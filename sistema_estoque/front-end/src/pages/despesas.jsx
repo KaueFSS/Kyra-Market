@@ -3,11 +3,17 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
+import { confirmDialog } from "../utils/confirmDialog";
 import SearchBar from "../components/SearchBarPage";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Despesas() {
-  const pageUrl = (p) => `/despesas/?page=${p}`;
+  // barra de pesquisa (busca server-side via ?search=)
+  const [termoBusca, setTermoBusca] = useState("");
+  const search = termoBusca.trim()
+    ? `&search=${encodeURIComponent(termoBusca.trim())}`
+    : "";
+  const pageUrl = (p) => `/despesas/?page=${p}${search}`;
 
   const cached1 = getSync(pageUrl(1));
   const parsed1 = parseListResponse(cached1);
@@ -18,9 +24,6 @@ function Despesas() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
-
-  //barra de pesquisa de vendas
-  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -44,6 +47,8 @@ function Despesas() {
   const [paginaMax, setPaginaMax] = useState(1);
   const [carregandoMais, setCarregandoMais] = useState(false);
 
+  useEffect(() => { setPagina(1); /* eslint-disable-next-line */ }, [termoBusca]);
+
   useEffect(() => {
     const url = pageUrl(pagina);
     if (!isCached(url)) setCarregando(true);
@@ -59,7 +64,8 @@ function Despesas() {
       })
       .catch(() => setErro("Não foi possível carregar as despesas."))
       .finally(() => setCarregando(false));
-  }, [pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina, termoBusca]);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -103,7 +109,13 @@ function Despesas() {
   }
 
   async function excluirSelecionados() {
-    if (!window.confirm(`Excluir ${selecionados.size} despesa(s)? Essa ação não pode ser desfeita.`)) return;
+    const ok = await confirmDialog({
+      title: `Excluir ${selecionados.size} despesa${selecionados.size !== 1 ? "s" : ""}?`,
+      message: "Esta ação não pode ser desfeita. As despesas serão removidas permanentemente.",
+      confirmText: `Excluir ${selecionados.size}`,
+      danger: true,
+    });
+    if (!ok) return;
     setExcluindo(true);
     try {
       await Promise.all([...selecionados].map((id) => api.delete(`/despesas/${id}/`)));
@@ -144,19 +156,7 @@ function Despesas() {
 
   const despesasFiltradas = sortData(
     despesas.filter((d) => {
-      const texto = termoBusca.toLowerCase().trim();
-      
-      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
-      const bateBusca =
-        !texto ||
-        String(d.id_despesa || "").toLowerCase().includes(texto) ||
-        String(d.funcionario_nome || "").toLowerCase().includes(texto) ||
-        String(d.data || "").toLowerCase().includes(texto) ||
-        String(d.categoria || "").toLowerCase().includes(texto) ||
-        String(d.descricao || "").toLowerCase().includes(texto) ||
-        String(d.valor || "").toLowerCase().includes(texto);
-
-      if (!bateBusca) return false;
+      // Busca textual via backend (?search=). Aqui só os filtros adicionais.
       if (filtroCategoria && d.categoria !== filtroCategoria) return false;
       if (filtroRecorrente === "true" && !d.recorrente) return false;
       if (filtroRecorrente === "false" && d.recorrente) return false;
@@ -186,10 +186,12 @@ function Despesas() {
       {carregando && <p className="loading-text">Carregando...</p>}
       {erro && <div className="alert-msg">⚠️ {erro}</div>}
       {!carregando && !erro && despesas.length === 0 && (
-        <p className="empty-state">Nenhuma despesa encontrada.</p>
+        <p className="empty-state">
+          {termoBusca ? `Nenhuma despesa encontrada para "${termoBusca}".` : "Nenhuma despesa encontrada."}
+        </p>
       )}
 
-      {despesas.length > 0 && (
+      {(despesas.length > 0 || termoBusca) && (
         <>
           <SearchBar
             label="Pesquisar despesa"

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
+import { confirmDialog } from "../utils/confirmDialog";
 import { formatarFormaPagamento, formatarMoeda, formatarData } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
 
@@ -16,7 +17,12 @@ const FORMAS = [
 ];
 
 function Vendas() {
-  const pageUrl = (p) => `/vendas/?page=${p}`;
+  // barra de pesquisa (busca server-side via ?search=)
+  const [termoBusca, setTermoBusca] = useState("");
+  const search = termoBusca.trim()
+    ? `&search=${encodeURIComponent(termoBusca.trim())}`
+    : "";
+  const pageUrl = (p) => `/vendas/?page=${p}${search}`;
 
   const cached1 = getSync(pageUrl(1));
   const parsed1 = parseListResponse(cached1);
@@ -27,9 +33,6 @@ function Vendas() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
-
-  //barra de pesquisa de vendas
-  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroForma, setFiltroForma] = useState("");
@@ -54,6 +57,12 @@ function Vendas() {
   const [paginaMax, setPaginaMax] = useState(1);
   const [carregandoMais, setCarregandoMais] = useState(false);
 
+  // Quando muda o termo de busca, volta pra página 1
+  useEffect(() => {
+    setPagina(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [termoBusca]);
+
   useEffect(() => {
     const url = pageUrl(pagina);
     if (!isCached(url)) setCarregando(true);
@@ -69,7 +78,8 @@ function Vendas() {
       })
       .catch(() => setErro("Não foi possível carregar as vendas."))
       .finally(() => setCarregando(false));
-  }, [pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina, termoBusca]);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -111,7 +121,13 @@ function Vendas() {
   }
 
   async function excluirSelecionados() {
-    if (!window.confirm(`Excluir ${selecionados.size} venda(s) selecionada(s)? Essa ação não pode ser desfeita.`)) return;
+    const ok = await confirmDialog({
+      title: `Excluir ${selecionados.size} venda${selecionados.size !== 1 ? "s" : ""}?`,
+      message: "Esta ação não pode ser desfeita. As vendas serão removidas permanentemente.",
+      confirmText: `Excluir ${selecionados.size}`,
+      danger: true,
+    });
+    if (!ok) return;
     setExcluindo(true);
     try {
       await Promise.all([...selecionados].map((id) => api.delete(`/vendas/${id}/`)));
@@ -150,21 +166,9 @@ function Vendas() {
     label: `${v.id_venda} - ${v.nome || "Sem nome"} - ${v.cliente_nome || v.cliente || "Sem cliente"} - ${v.data_venda}`,
   }));
 
+  // A busca textual é feita pelo backend (?search=). Aqui aplica só os filtros adicionais.
   const vendasFiltradas = sortData(
     vendas.filter((v) => {
-      const texto = termoBusca.toLowerCase().trim();
-      
-      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
-      const bateBusca =
-        !texto ||
-        String(v.id_venda || "").toLowerCase().includes(texto) ||
-        String(v.nome || "").toLowerCase().includes(texto) ||
-        String(v.cliente_nome || v.cliente || "").toLowerCase().includes(texto) ||
-        String(v.funcionario_nome || v.funcionario || "").toLowerCase().includes(texto) ||
-        String(v.data_venda || "").toLowerCase().includes(texto) ||
-        String(v.forma_pagamento || "").toLowerCase().includes(texto);
-
-      if (!bateBusca) return false;
       if (filtroForma && v.forma_pagamento !== filtroForma) return false;
       if (filtroDataInicio && v.data_venda < filtroDataInicio) return false;
       if (filtroDataFim && v.data_venda > filtroDataFim) return false;
@@ -201,10 +205,12 @@ function Vendas() {
       {carregando && <p className="loading-text">Carregando vendas...</p>}
       {erro && <div className="alert-msg">⚠️ {erro}</div>}
       {!carregando && !erro && vendas.length === 0 && (
-        <p className="empty-state">Nenhuma venda encontrada.</p>
+        <p className="empty-state">
+          {termoBusca ? `Nenhuma venda encontrada para "${termoBusca}".` : "Nenhuma venda encontrada."}
+        </p>
       )}
 
-      {vendas.length > 0 && (
+      {(vendas.length > 0 || termoBusca) && (
         <>
           <SearchBar
             label="Pesquisar vendas"
