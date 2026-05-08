@@ -26,25 +26,13 @@ function prefetchChunk(loader) {
   loader().catch(() => prefetched.delete(loader));
 }
 
-const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-
 function BarraNavegacao({ onOpenSearch }) {
   const [usuario, setUsuario] = useState(null);
-  const [agora, setAgora] = useState(new Date());
-
   useEffect(() => {
     cachedGet(api, "/funcionarios/FUNC004/")
       .then((res) => setUsuario(res.data))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    const t = setInterval(() => setAgora(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const horaTxt = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const dataTxt = `${DIAS[agora.getDay()]}, ${String(agora.getDate()).padStart(2,"0")}/${String(agora.getMonth()+1).padStart(2,"0")}`;
 
   return (
     <nav className="nav-bar">
@@ -70,11 +58,6 @@ function BarraNavegacao({ onOpenSearch }) {
             <span className="nav-link-label">{link.label}</span>
           </NavLink>
         ))}
-      </div>
-
-      <div className="nav-clock" aria-hidden="true">
-        <span className="nav-clock-time">{horaTxt}</span>
-        <span className="nav-clock-date">{dataTxt}</span>
       </div>
 
       {onOpenSearch && (
