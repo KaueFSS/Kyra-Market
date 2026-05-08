@@ -5,10 +5,11 @@ import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import { criarDado, listarDados } from "../services/crudService";
-import { gerarIdSequencial } from "../utils/gerarIdSequencial";
+import { gerarIdUnico } from "../utils/gerarIdSequencial";
 import { mascaraTelefone } from "../utils/mascaras";
 import { useFormShortcuts } from "../utils/useFormShortcuts";
 import { invalidateCache } from "../utils/apiCache";
+import { formatarErroAPI } from "../utils/errosApi";
 
 const estadoInicial = {
   nome: "",
@@ -55,7 +56,7 @@ function CadastrarCliente() {
     setSalvando(true);
     const dados = {
       ...cliente,
-      id_cliente:   gerarIdSequencial(clientes, "id_cliente", "CLI"),
+      id_cliente:   gerarIdUnico("CLI"),
       possui_fiado: cliente.possui_fiado === "true",
       saldo_fiado:  Number(cliente.saldo_fiado || 0).toFixed(2),
       total_valor:  Number(cliente.total_valor || 0).toFixed(2),
@@ -63,11 +64,11 @@ function CadastrarCliente() {
     };
     try {
       const criado = await criarDado("/clientes/", dados);
-      invalidateCache("/clientes/?page=1");
+      invalidateCache("/clientes/");
       setClientes(prev => [...prev, criado]);
       navigate(`/clientes?highlight=${criado.id_cliente}`);
-    } catch {
-      setErro("Erro ao cadastrar cliente. Verifique os campos.");
+    } catch (err) {
+      setErro(formatarErroAPI(err, "Erro ao cadastrar cliente. Verifique os campos."));
     } finally {
       setSalvando(false);
     }

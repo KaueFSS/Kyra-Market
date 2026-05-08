@@ -1,51 +1,99 @@
 import api from "../services/api";
 
-const _cache = new Map();
-const TTL = 4 * 60 * 60_000; // 4 horas
+/**
+ * Cache HTTP inteligente:
+ *  - Deduplicação de requests em voo (5 chamadas simultâneas = 1 request)
+ *  - Stale-While-Revalidate: devolve cache imediato e atualiza em background
+ *  - TTL configurável; após o TTL revalida; após o "hardTTL" descarta
+ */
 
-/* Lê e retorna do cache se válido, senão faz a requisição e guarda */
+const _cache    = new Map(); // url → { res, ts }
+const _inflight = new Map(); // url → Promise (request em voo)
+
+const TTL       = 5 * 60 * 1000;     // 5 min: usa cache "fresco"
+const HARD_TTL  = 60 * 60 * 1000;    // 1h:   após isso o cache é jogado fora
+
+function isFresh(hit)  { return hit && Date.now() - hit.ts < TTL; }
+function isUsable(hit) { return hit && Date.now() - hit.ts < HARD_TTL; }
+
+async function _fetchAndStore(apiInstance, url) {
+  // Deduplicação: se já tem request em voo, reusa
+  if (_inflight.has(url)) return _inflight.get(url);
+
+  const promise = apiInstance.get(url)
+    .then((res) => {
+      _cache.set(url, { res, ts: Date.now() });
+      _inflight.delete(url);
+      return res;
+    })
+    .catch((err) => {
+      _inflight.delete(url);
+      throw err;
+    });
+
+  _inflight.set(url, promise);
+  return promise;
+}
+
+/**
+ * GET com cache + SWR.
+ * - Se cache fresco → retorna imediato
+ * - Se cache stale (entre TTL e HARD_TTL) → retorna stale e revalida em background
+ * - Se sem cache (ou hard expirado) → faz request normal
+ */
 export async function cachedGet(apiInstance, url) {
   const hit = _cache.get(url);
-  if (hit && Date.now() - hit.ts < TTL) return hit.res;
-  const res = await apiInstance.get(url);
-  _cache.set(url, { res, ts: Date.now() });
-  return res;
+
+  if (isFresh(hit)) return hit.res;
+
+  if (isUsable(hit)) {
+    // Stale-while-revalidate: devolve cache, atualiza em fundo
+    _fetchAndStore(apiInstance, url).catch(() => {});
+    return hit.res;
+  }
+
+  return _fetchAndStore(apiInstance, url);
 }
 
-/* Retorna resposta cacheada SINCRONAMENTE (null se expirada/ausente) */
+/* Retorna do cache sincronamente (para render inicial sem await) */
 export function getSync(url) {
   const hit = _cache.get(url);
-  return hit && Date.now() - hit.ts < TTL ? hit.res : null;
+  return isUsable(hit) ? hit.res : null;
 }
 
-/* Verifica se a URL está no cache válido */
+/* Verifica se existe cache utilizável */
 export function isCached(url) {
-  const hit = _cache.get(url);
-  return !!(hit && Date.now() - hit.ts < TTL);
+  return isUsable(_cache.get(url));
 }
 
-/* Busca em background sem bloquear; ignora erro silenciosamente */
+/* Busca em background sem bloquear (usado em hover/preload) */
 export function prefetch(url) {
-  if (isCached(url)) return;
-  api.get(url)
-    .then((res) => _cache.set(url, { res, ts: Date.now() }))
-    .catch(() => {});
+  if (isFresh(_cache.get(url))) return;
+  _fetchAndStore(api, url).catch(() => {});
 }
 
-/* Invalida uma URL (ou tudo se url omitida) */
+/* Invalida cache (uma URL ou tudo) */
 export function invalidateCache(url) {
-  if (url) _cache.delete(url);
-  else _cache.clear();
+  if (url) {
+    // Invalida a URL exata e suas variações de página
+    for (const key of _cache.keys()) {
+      if (key === url || key.startsWith(url.split("?")[0])) {
+        _cache.delete(key);
+      }
+    }
+  } else {
+    _cache.clear();
+  }
 }
 
-/* Retorna os itens cacheados de uma URL específica (para busca global) */
+/* Itens cacheados de uma URL (para busca global) */
 export function getCachedSection(url) {
   const hit = _cache.get(url);
-  if (!hit || Date.now() - hit.ts >= TTL) return [];
+  if (!isUsable(hit)) return [];
   return parseListResponse(hit.res).data;
 }
 
-/* Extrai array + paginação de qualquer resposta da API */
+/* Extrai array + paginação de qualquer resposta */
 export function parseListResponse(res) {
   if (!res) return { data: [], next: null, previous: null };
   const d = res.data;

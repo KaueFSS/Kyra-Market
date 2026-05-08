@@ -8,6 +8,7 @@ import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
 import { invalidateCache } from "../utils/apiCache";
 import { formatarMoeda } from "../utils/formatadores";
+import { formatarErroAPI } from "../utils/errosApi";
 
 const estadoInicialCompra = {
   nome: "", fornecedor: "", funcionario: "",
@@ -106,7 +107,7 @@ function CadastrarCompra() {
       setItemAtual(estadoInicialItem);
       setItens([]);
     } catch (err) {
-      setErro(err.response?.data?.erro || "Erro ao cadastrar compra.");
+      setErro(formatarErroAPI(err, "Erro ao cadastrar compra."));
       setMensagem("");
     }
   }
@@ -118,7 +119,7 @@ function CadastrarCompra() {
 
   const opcoesFornecedores = fornecedores.map((f) => ({
     value: f.id_fornecedor,
-    label: `${f.id_fornecedor} - ${f.nome_fantasia}`,
+    label: `${f.fornecedor} - ${f.nome_fantasia}`,
   }));
 
   const opcoesProdutos = produtos.map((p) => ({

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import FormInput from "../components/FormInput";
-import FormSelectSearch from "../components/FormSelectSearch";
+import FormSelect from "../components/FormSelect";
 import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import { listarDados } from "../services/crudService";
@@ -41,11 +41,6 @@ function EditarProduto() {
 
   if (!form) return <div className="page-container"><p className="loading-text">Carregando...</p></div>;
 
-  const opcoesFornecedores = fornecedores.map((f) => ({
-    value: f.id_fornecedor,
-    label: `${f.id_fornecedor} - ${f.nome_fantasia || f.razao_social}`,
-  }));
-
   return (
     <div className="page-container">
       <h1 className="page-title">Editar Produto</h1>
@@ -55,14 +50,8 @@ function EditarProduto() {
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
         <FormInput label="Nome" name="nome" value={form.nome} onChange={handleChange} required />
-        <FormSelectSearch 
-          label="Fornecedor" 
-          name="fornecedor" 
-          value={form.fornecedor} 
-          onChange={handleChange} 
-          options={opcoesFornecedores} 
-          placeholder="Selecione um fornecedor..." 
-          isClearable 
+        <FormSelect label="Fornecedor" name="fornecedor" value={form.fornecedor || ""} onChange={handleChange}
+          options={[{ value: "", label: "Sem fornecedor" }, ...fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))]}
         />
         <FormInput label="Marca" name="marca" value={form.marca || ""} onChange={handleChange} placeholder="Ex: Nestlé, Unilever" />
         <FormInput label="Categoria" name="categoria" value={form.categoria || ""} onChange={handleChange} />

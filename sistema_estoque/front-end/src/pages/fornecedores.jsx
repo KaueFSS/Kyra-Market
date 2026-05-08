@@ -3,10 +3,16 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
+import { confirmDialog } from "../utils/confirmDialog";
 import SearchBar from "../components/SearchBarPage";
 
 function Fornecedores() {
-  const pageUrl = (p) => `/fornecedores/?page=${p}`;
+  // barra de pesquisa (busca server-side via ?search=)
+  const [termoBusca, setTermoBusca] = useState("");
+  const search = termoBusca.trim()
+    ? `&search=${encodeURIComponent(termoBusca.trim())}`
+    : "";
+  const pageUrl = (p) => `/fornecedores/?page=${p}${search}`;
 
   const cached1 = getSync(pageUrl(1));
   const parsed1 = parseListResponse(cached1);
@@ -17,9 +23,6 @@ function Fornecedores() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
-
-  //barra de pesquisa de vendas
-  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroUF, setFiltroUF] = useState("");
@@ -42,6 +45,8 @@ function Fornecedores() {
   const [paginaMax, setPaginaMax] = useState(1);
   const [carregandoMais, setCarregandoMais] = useState(false);
 
+  useEffect(() => { setPagina(1); /* eslint-disable-next-line */ }, [termoBusca]);
+
   useEffect(() => {
     const url = pageUrl(pagina);
     if (!isCached(url)) setCarregando(true);
@@ -57,7 +62,8 @@ function Fornecedores() {
       })
       .catch(() => setErro("Não foi possível carregar os fornecedores."))
       .finally(() => setCarregando(false));
-  }, [pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina, termoBusca]);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -101,7 +107,13 @@ function Fornecedores() {
   }
 
   async function excluirSelecionados() {
-    if (!window.confirm(`Excluir ${selecionados.size} fornecedor(es)? Essa ação não pode ser desfeita.`)) return;
+    const ok = await confirmDialog({
+      title: `Excluir ${selecionados.size} fornecedor${selecionados.size !== 1 ? "es" : ""}?`,
+      message: "Esta ação não pode ser desfeita. Os fornecedores serão removidos permanentemente.",
+      confirmText: `Excluir ${selecionados.size}`,
+      danger: true,
+    });
+    if (!ok) return;
     setExcluindo(true);
     try {
       await Promise.all([...selecionados].map((id) => api.delete(`/fornecedores/${id}/`)));
@@ -142,21 +154,7 @@ function Fornecedores() {
 
   const fornecedoresFiltrados = sortData(
     fornecedores.filter((f) => {
-      const texto = termoBusca.toLowerCase().trim();
-      
-      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
-      const bateBusca =
-        !texto ||
-        String(f.id_fornecedor || "").toLowerCase().includes(texto) ||
-        String(f.razao_social || "").toLowerCase().includes(texto) ||
-        String(f.nome_fantasia || "").toLowerCase().includes(texto) ||
-        String(f.cnpj || "").toLowerCase().includes(texto) ||
-        String(f.cidade || "").toLowerCase().includes(texto) ||
-        String(f.uf || "").toLowerCase().includes(texto) ||
-        String(f.avaliacao || "").toLowerCase().includes(texto) ||
-        String(f.telefone || "").toLowerCase().includes(texto);
-
-      if (!bateBusca) return false;
+      // Busca textual via backend (?search=). Aqui só os filtros adicionais.
       if (filtroUF && f.uf !== filtroUF) return false;
       return true;
     })
@@ -182,10 +180,12 @@ function Fornecedores() {
       {carregando && <p className="loading-text">Carregando...</p>}
       {erro && <div className="alert-msg">⚠️ {erro}</div>}
       {!carregando && !erro && fornecedores.length === 0 && (
-        <p className="empty-state">Nenhum fornecedor encontrado.</p>
+        <p className="empty-state">
+          {termoBusca ? `Nenhum fornecedor encontrado para "${termoBusca}".` : "Nenhum fornecedor encontrado."}
+        </p>
       )}
 
-      {fornecedores.length > 0 && (
+      {(fornecedores.length > 0 || termoBusca) && (
         <>
           <SearchBar
             label="Pesquisar fornecedor"

@@ -3,11 +3,17 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from "../utils/apiCache";
 import { showToast } from "../utils/toast";
+import { confirmDialog } from "../utils/confirmDialog";
 import { formatarMoeda } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
 
 function Produtos() {
-  const pageUrl = (p) => `/produtos/?page=${p}`;
+  // barra de pesquisa (busca server-side via ?search=)
+  const [termoBusca, setTermoBusca] = useState("");
+  const search = termoBusca.trim()
+    ? `&search=${encodeURIComponent(termoBusca.trim())}`
+    : "";
+  const pageUrl = (p) => `/produtos/?page=${p}${search}`;
 
   const cached1 = getSync(pageUrl(1));
   const parsed1 = parseListResponse(cached1);
@@ -18,9 +24,6 @@ function Produtos() {
   const [pagina, setPagina] = useState(1);
   const [temProxima, setTemProxima] = useState(!!parsed1.next);
   const [temAnterior, setTemAnterior] = useState(!!parsed1.previous);
-
-  //barra de pesquisa de vendas
-  const [termoBusca, setTermoBusca] = useState("");
 
   // filtros
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -44,6 +47,8 @@ function Produtos() {
   const [paginaMax, setPaginaMax] = useState(1);
   const [carregandoMais, setCarregandoMais] = useState(false);
 
+  useEffect(() => { setPagina(1); /* eslint-disable-next-line */ }, [termoBusca]);
+
   useEffect(() => {
     const url = pageUrl(pagina);
     if (!isCached(url)) setCarregando(true);
@@ -59,7 +64,8 @@ function Produtos() {
       })
       .catch(() => setErro("Não foi possível carregar os produtos."))
       .finally(() => setCarregando(false));
-  }, [pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina, termoBusca]);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -104,7 +110,13 @@ function Produtos() {
   }
 
   async function excluirSelecionados() {
-    if (!window.confirm(`Excluir ${selecionados.size} produto(s)? Essa ação não pode ser desfeita.`)) return;
+    const ok = await confirmDialog({
+      title: `Excluir ${selecionados.size} produto${selecionados.size !== 1 ? "s" : ""}?`,
+      message: "Esta ação não pode ser desfeita. Os produtos serão removidos permanentemente.",
+      confirmText: `Excluir ${selecionados.size}`,
+      danger: true,
+    });
+    if (!ok) return;
     setExcluindo(true);
     try {
       await Promise.all([...selecionados].map((id) => api.delete(`/produtos/${id}/`)));
@@ -143,21 +155,9 @@ function Produtos() {
     label: `${p.id_produto} - ${p.nome}`,
   }));
 
+  // Busca textual via backend (?search=). Aqui só os filtros adicionais.
   const produtosFiltrados = sortData(
     produtos.filter((p) => {
-      const texto = termoBusca.toLowerCase().trim();
-      
-      //verificador de se o que esta digitado na barra de pesquisa bate com algum dos campos de alguma venda
-      const bateBusca =
-        !texto ||
-        String(p.id_produto || "").toLowerCase().includes(texto) ||
-        String(p.fornecedor || "").toLowerCase().includes(texto) ||
-        String(p.marca || "").toLowerCase().includes(texto) ||
-        String(p.categoria || v.funcionario || "").toLowerCase().includes(texto) ||
-        String(p.subcategoria || "").toLowerCase().includes(texto) ||
-        String(p.nome || "").toLowerCase().includes(texto);
-
-      if (!bateBusca) return false;
       if (filtroCategoria && p.categoria !== filtroCategoria) return false;
       if (filtroMarca && p.marca !== filtroMarca) return false;
       return true;
@@ -184,10 +184,12 @@ function Produtos() {
       {carregando && <p className="loading-text">Carregando...</p>}
       {erro && <div className="alert-msg">⚠️ {erro}</div>}
       {!carregando && !erro && produtos.length === 0 && (
-        <p className="empty-state">Nenhum produto encontrado.</p>
+        <p className="empty-state">
+          {termoBusca ? `Nenhum produto encontrado para "${termoBusca}".` : "Nenhum produto encontrado."}
+        </p>
       )}
 
-      {produtos.length > 0 && (
+      {(produtos.length > 0 || termoBusca) && (
         <>
           <SearchBar
             label="Pesquisar produtos"

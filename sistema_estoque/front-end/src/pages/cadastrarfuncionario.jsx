@@ -5,6 +5,8 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado } from "../services/crudService";
+import { formatarErroAPI } from "../utils/errosApi";
+import { invalidateCache } from "../utils/apiCache";
 
 function gerarIdFuncionario() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -35,11 +37,12 @@ function CadastrarFuncionario() {
         id_funcionario: gerarIdFuncionario(),
         ativo: funcionario.ativo === "true",
       });
+      invalidateCache("/funcionarios/");
       setMensagem("Funcionário cadastrado com sucesso!");
       setErro("");
       setFuncionario(estadoInicial);
-    } catch {
-      setErro("Erro ao cadastrar funcionário. Verifique os campos.");
+    } catch (err) {
+      setErro(formatarErroAPI(err, "Erro ao cadastrar funcionário. Verifique os campos."));
       setMensagem("");
     }
   }

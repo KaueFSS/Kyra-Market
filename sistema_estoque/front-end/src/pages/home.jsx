@@ -271,10 +271,10 @@ function Home() {
 
                       return (
                         <div key={e.id_estoque} style={{
-                          background: "var(--bg-base)",
-                          border: `1px solid ${critico ? "rgba(239,68,68,0.25)" : "rgba(245,158,11,0.2)"}`,
+                          background: "#f3f5f9",
+                          border: "1px solid #e1e5ed",
                           borderRadius: 10,
-                          padding: "10px 14px",
+                          padding: "11px 16px",
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontWeight: 600, fontSize: "0.88rem" }}>
@@ -291,22 +291,25 @@ function Home() {
                               {critico ? "🔴 SEM ESTOQUE" : "🟡 BAIXO"}
                             </span>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{
                               flex: 1,
-                              height: 6,
-                              background: "rgba(255,255,255,0.06)",
+                              height: 8,
+                              background: "#dde2eb",
                               borderRadius: 999,
                               overflow: "hidden",
+                              position: "relative",
                             }}>
                               <div style={{
                                 width: `${pct}%`,
                                 height: "100%",
-                                background: cor,
+                                background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
                                 borderRadius: 999,
+                                transition: "width 0.4s cubic-bezier(.4,0,.2,1)",
+                                boxShadow: "0 1px 3px rgba(245,158,11,0.3)",
                               }} />
                             </div>
-                            <span style={{ color: cor, fontWeight: 700, fontSize: "0.78rem", minWidth: 60, textAlign: "right" }}>
+                            <span style={{ color: cor, fontWeight: 700, fontSize: "0.85rem", minWidth: 64, textAlign: "right" }}>
                               {atual} / {minimo} un
                             </span>
                           </div>

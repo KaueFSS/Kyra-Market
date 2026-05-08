@@ -5,7 +5,9 @@ import BotaoSalvar from "../components/BotaoSalvar";
 import MensagemErro from "../components/MensagemErro";
 import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
-import { gerarIdSequencial } from "../utils/gerarIdSequencial";
+import { gerarIdUnico } from "../utils/gerarIdSequencial";
+import { formatarErroAPI } from "../utils/errosApi";
+import { invalidateCache } from "../utils/apiCache";
 
 function CadastrarProdutoEstoque() {
   const hoje = new Date().toISOString().split("T")[0];
@@ -41,14 +43,16 @@ function CadastrarProdutoEstoque() {
 
   async function salvarProdutoEstoque(event) {
     event.preventDefault();
-    const idProdutoGerado = gerarIdSequencial(produtos, "id_produto", "PRD");
-    const idEstoqueGerado = `EST${idProdutoGerado.slice(3)}`;
+    const idProdutoGerado = gerarIdUnico("PRD");
+    const idEstoqueGerado = gerarIdUnico("EST");
 
     try {
       const produtoCriado = await criarDado("/produtos/", {
         ...produto,
         id_produto: idProdutoGerado,
         preco: parseFloat(produto.preco),
+        preco_custo: parseFloat(produto.preco_custo || 0),
+        fornecedor: produto.fornecedor || null,
       });
       await criarDado("/estoques/", {
         ...estoque,
@@ -59,13 +63,15 @@ function CadastrarProdutoEstoque() {
         dt_ultima_saida: estoque.dt_ultima_saida || null,
         dt_ultima_entrada: estoque.dt_ultima_entrada || hoje,
       });
+      invalidateCache("/produtos/");
+      invalidateCache("/estoques/");
       setProdutos((prev) => [...prev, produtoCriado]);
       setMensagem("Produto cadastrado com sucesso!");
       setErro("");
       setProduto({ fornecedor: "", nome: "", marca: "", categoria: "", subcategoria: "", unidade: "", codigo_barras: "", preco_custo: "", preco: "" });
       setEstoque({ quantidade_atual: "", quantidade_minima: "", dt_ultima_entrada: hoje, dt_ultima_saida: "" });
     } catch (error) {
-      setErro("Erro ao cadastrar produto. Verifique os campos.");
+      setErro(formatarErroAPI(error, "Erro ao cadastrar produto. Verifique os campos."));
       setMensagem("");
     }
   }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 
-const METABASE_URL   = "http://localhost:3000";
+const METABASE_HOST  = typeof window !== "undefined" ? window.location.hostname : "localhost";
+const METABASE_URL   = `http://${METABASE_HOST}:3000`;
 const DASHBOARD_URL  = `${METABASE_URL}/public/dashboard/9e121adb-41a6-4aef-acfe-26dafdabceca`;
 const CHECK_INTERVAL = 4000;  // ms entre verificações
 const GRACE_PERIOD   = 120000; // 2 min antes de mostrar "offline"

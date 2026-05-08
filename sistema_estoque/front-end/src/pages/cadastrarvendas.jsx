@@ -9,6 +9,7 @@ import MensagemSucesso from "../components/MensagemSucesso";
 import { criarDado, listarDados } from "../services/crudService";
 import { invalidateCache } from "../utils/apiCache";
 import { formatarMoeda } from "../utils/formatadores";
+import { formatarErroAPI } from "../utils/errosApi";
 
 function CadastrarVendas() {
   const [vendas, setVendas] = useState({
@@ -153,8 +154,7 @@ function CadastrarVendas() {
       setItemAtual({ produto: "", quantidade_vendida: "", desconto: "0" });
       setItens([]);
     } catch (error) {
-      console.error(error.response?.data);
-      setErro(error.response?.data?.erro || "Erro ao cadastrar venda. Verifique os campos.");
+      setErro(formatarErroAPI(error, "Erro ao cadastrar venda. Verifique os campos."));
       setMensagem("");
     }
   }

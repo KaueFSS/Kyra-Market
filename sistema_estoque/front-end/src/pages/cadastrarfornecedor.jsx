@@ -9,6 +9,7 @@ import { mascaraCNPJ, mascaraTelefone, mascaraCEP, limparMascara } from "../util
 import { useCEP } from "../utils/useCEP";
 import { useFormShortcuts } from "../utils/useFormShortcuts";
 import { invalidateCache } from "../utils/apiCache";
+import { formatarErroAPI } from "../utils/errosApi";
 
 function gerarIdFornecedor() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -67,10 +68,10 @@ function CadastrarFornecedor() {
         cnpj: fornecedor.cnpj,           // backend aceita com máscara
         id_fornecedor: gerarIdFornecedor(),
       });
-      invalidateCache("/fornecedores/?page=1");
+      invalidateCache("/fornecedores/");
       navigate(`/fornecedores?highlight=${criado.id_fornecedor}`);
-    } catch {
-      setErro("Erro ao cadastrar fornecedor. Verifique os campos.");
+    } catch (err) {
+      setErro(formatarErroAPI(err, "Erro ao cadastrar fornecedor. Verifique os campos."));
     } finally {
       setSalvando(false);
     }
