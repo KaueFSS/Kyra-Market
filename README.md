@@ -14,7 +14,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![Metabase](https://img.shields.io/badge/Metabase-509EE3?style=flat-square&logo=metabase&logoColor=white)
 
-[Rodar em um comando](#rodar) &nbsp;·&nbsp; [Funcionalidades](#o-que-ele-faz) &nbsp;·&nbsp; [Como funciona por dentro](#como-funciona-por-dentro) &nbsp;·&nbsp; [Equipe](#equipe-e-histórico)
+**[Abrir a demo online](https://kauefss.github.io/Kyra-Market/)** &nbsp;·&nbsp; [Rodar em um comando](#rodar) &nbsp;·&nbsp; [Funcionalidades](#o-que-ele-faz) &nbsp;·&nbsp; [Como funciona por dentro](#como-funciona-por-dentro) &nbsp;·&nbsp; [Equipe](#equipe-e-histórico)
 
 <br />
 
@@ -64,8 +64,14 @@ O Kyra Market é a resposta: um sistema web completo que **roda localmente, sem 
 | | |
 |---|---|
 | **11** modelos de dados | **10** recursos REST + **4** operações dedicadas |
-| **34** páginas e **22** componentes React | **10** migrations |
-| **~2,7 mil** linhas de Python (sem migrations) | **~7,2 mil** linhas de JavaScript |
+| **35** páginas e **22** componentes React | **10** migrations |
+| **~2,7 mil** linhas de Python (sem migrations) | **~8,1 mil** linhas de JavaScript |
+
+## Demo online
+
+**[kauefss.github.io/Kyra-Market](https://kauefss.github.io/Kyra-Market/)**: o sistema completo direto no navegador, sem instalar nada. Dá para registrar vendas (com baixa no estoque), vender no fiado e receber o pagamento, marcar compras como entregues, cadastrar e excluir.
+
+Na demo, as requisições são respondidas no próprio navegador por [`src/demo/backend.js`](sistema_estoque/front-end/src/demo/backend.js), que segue as mesmas regras da API Django sobre um recorte dos dados de exemplo. O que você altera fica só no seu navegador, e o botão **Restaurar dados** volta tudo ao início. A tela de análises, que no sistema instalado mostra os painéis do Metabase, vira um resumo calculado ali mesmo.
 
 ## Rodar
 
@@ -100,7 +106,7 @@ Os painéis do Metabase, quando ativados, ficam em **http://localhost:3000**.
 
 ```mermaid
 flowchart LR
-    UI["React 19 + Vite<br/><sub>34 páginas, 22 componentes</sub>"] -- "Axios · JSON" --> API["Django REST framework<br/><sub>viewsets + operações transacionais</sub>"]
+    UI["React 19 + Vite<br/><sub>35 páginas, 22 componentes</sub>"] -- "Axios · JSON" --> API["Django REST framework<br/><sub>viewsets + operações transacionais</sub>"]
     API --> ORM["Django ORM<br/><sub>11 modelos</sub>"]
     ORM --> DB[("SQLite<br/><sub>um arquivo local</sub>")]
     MB["Metabase<br/><sub>painéis analíticos</sub>"] -. "lê" .-> DB
