@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { IconSearch } from "./Icons";
 import { useNavigate } from "react-router-dom";
 import { getCachedSection } from "../utils/apiCache";
 
@@ -107,7 +108,7 @@ function GlobalSearch({ onClose }) {
       <div className="gsearch-modal" onMouseDown={e => e.stopPropagation()}>
 
         <div className="gsearch-header">
-          <span className="gsearch-icon">🔍</span>
+          <span className="gsearch-icon"><IconSearch width={18} height={18} /></span>
           <input
             ref={inputRef}
             className="gsearch-input"

@@ -4,62 +4,61 @@ const estilosCustomizados = {
   control: (base, state) => ({
     ...base,
     backgroundColor: "#ffffff",
-    borderColor: state.isFocused ? "#2563eb" : "#c4cdd8",
-    borderWidth: "1.5px",
-    boxShadow: state.isFocused ? "0 0 0 4px rgba(37,99,235,0.12)" : "0 1px 2px rgba(15,30,61,0.05)",
-    minHeight: "46px",
-    borderRadius: "9px",
-    color: "#0f172a",
+    borderColor: state.isFocused ? "#1f7a4d" : "#cbd1d9",
+    borderWidth: "1px",
+    boxShadow: state.isFocused ? "0 0 0 3px rgba(31,122,77,0.15)" : "none",
+    minHeight: "38px",
+    borderRadius: "6px",
+    color: "#18202c",
     width: "100%",
-    transition: "border-color 0.15s, box-shadow 0.15s",
-    "&:hover": { borderColor: state.isFocused ? "#2563eb" : "#94a3b8" },
+    fontSize: "0.92rem",
+    transition: "border-color 0.12s, box-shadow 0.12s",
+    "&:hover": { borderColor: state.isFocused ? "#1f7a4d" : "#aeb6c2" },
   }),
-  valueContainer: (base) => ({ ...base, padding: "0 13px" }),
-  singleValue: (base) => ({ ...base, color: "#0f172a", fontWeight: 500 }),
-  input: (base) => ({ ...base, color: "#0f172a" }),
-  placeholder: (base) => ({ ...base, color: "#94a3b8" }),
+  valueContainer: (base) => ({ ...base, padding: "0 10px" }),
+  singleValue: (base) => ({ ...base, color: "#18202c" }),
+  input: (base) => ({ ...base, color: "#18202c", margin: 0, padding: 0 }),
+  placeholder: (base) => ({ ...base, color: "#98a1ae" }),
   menu: (base) => ({
     ...base,
     backgroundColor: "#ffffff",
-    border: "1.5px solid #dde3ee",
-    boxShadow: "0 12px 32px rgba(15,30,61,0.15)",
-    borderRadius: "10px",
+    border: "1px solid #e2e5ea",
+    boxShadow: "0 8px 24px rgba(16,24,40,0.12)",
+    borderRadius: "8px",
     overflow: "hidden",
+    marginTop: 4,
     zIndex: 9999,
   }),
   menuList: (base) => ({ ...base, padding: "4px 0" }),
   option: (base, state) => ({
     ...base,
-    backgroundColor: state.isSelected
-      ? "#2563eb"
-      : state.isFocused
-      ? "#eff6ff"
-      : "#ffffff",
-    color: state.isSelected ? "#ffffff" : "#0f172a",
+    backgroundColor: state.isSelected ? "#eef7f1" : state.isFocused ? "#f3f5f8" : "#ffffff",
+    color: state.isSelected ? "#17603c" : "#18202c",
     cursor: "pointer",
-    fontSize: "0.92rem",
-    fontWeight: state.isSelected ? 600 : 500,
-    padding: "10px 14px",
-    transition: "background 0.1s",
-    "&:active": { backgroundColor: state.isSelected ? "#1d4ed8" : "#dbeafe" },
+    fontSize: "0.9rem",
+    fontWeight: state.isSelected ? 600 : 400,
+    padding: "8px 12px",
+    "&:active": { backgroundColor: "#e6efe9" },
   }),
   clearIndicator: (base) => ({
     ...base,
-    color: "#94a3b8",
+    color: "#98a1ae",
+    padding: "0 6px",
     cursor: "pointer",
-    "&:hover": { color: "#dc2626" },
+    "&:hover": { color: "#b42318" },
   }),
-  dropdownIndicator: (base, state) => ({
+  dropdownIndicator: (base) => ({
     ...base,
-    color: state.isFocused ? "#2563eb" : "#94a3b8",
-    "&:hover": { color: "#2563eb" },
+    color: "#6b7280",
+    padding: "0 8px",
+    "&:hover": { color: "#18202c" },
   }),
-  indicatorSeparator: (base) => ({ ...base, backgroundColor: "#dde3ee" }),
+  indicatorSeparator: () => ({ display: "none" }),
   noOptionsMessage: (base) => ({
     ...base,
-    color: "#475569",
+    color: "#6b7280",
     fontSize: "0.88rem",
-    padding: "14px",
+    padding: "12px",
   }),
 };
 
@@ -88,7 +87,7 @@ function FormSelectSearch({
     <div className="form-group">
       {label && (
         <label className="form-label">
-          {label} {required && <span style={{ color: "var(--accent-red)" }}>*</span>}
+          {label} {required && <span className="form-required">*</span>}
         </label>
       )}
       <Select

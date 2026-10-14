@@ -3,7 +3,7 @@ function FormInput({ label, name, value, onChange, type = "text", required = fal
     <div className="form-group">
       {label && (
         <label className="form-label">
-          {label} {required && <span style={{ color: "var(--accent-red)" }}>*</span>}
+          {label} {required && <span className="form-required">*</span>}
         </label>
       )}
       <input

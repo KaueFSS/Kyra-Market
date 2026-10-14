@@ -114,3 +114,52 @@ export function IconSearch(props) {
     </svg>
   );
 }
+
+export function IconAlerta(props) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M12 3.5 2.8 19.5h18.4L12 3.5z" />
+      <path d="M12 10v4.5" />
+      <circle cx="12" cy="17.2" r="0.6" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function IconGrafico(props) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M4 20V4" />
+      <path d="M4 20h16" />
+      <rect x="7.5" y="11" width="3" height="6" rx="0.5" />
+      <rect x="13" y="7" width="3" height="10" rx="0.5" />
+    </svg>
+  );
+}
+
+export function IconCarteira(props) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3" />
+      <path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z" />
+      <circle cx="16" cy="13.5" r="1.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function IconDinheiro(props) {
+  return (
+    <svg {...baseProps} {...props}>
+      <rect x="3" y="6.5" width="18" height="11" rx="1.5" />
+      <circle cx="12" cy="12" r="2.4" />
+      <path d="M6.5 9.5v.01M17.5 14.5v.01" />
+    </svg>
+  );
+}
+
+export function IconPlus(props) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}

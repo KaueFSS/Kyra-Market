@@ -1,7 +1,7 @@
 function BotaoSalvar({ texto = "Salvar" }) {
   return (
     <button type="submit" className="btn btn-primary">
-      💾 {texto}
+      {texto}
     </button>
   );
 }

@@ -63,8 +63,8 @@ function SplashScreen({ steps, fading }) {
           <div className="splash-ring splash-ring-3" />
           <div className="splash-logo-frame">
             <img
-              src="/icons/icon-mercado.png"
-              alt="Mercadinho"
+              src="/kyra-market.svg"
+              alt="Kyra Market"
               className="splash-logo-img"
             />
           </div>
@@ -72,7 +72,7 @@ function SplashScreen({ steps, fading }) {
 
         {/* Titles */}
         <div className="splash-text-block">
-          <h1 className="splash-title">Mercadinho</h1>
+          <h1 className="splash-title">Kyra Market</h1>
           <p className="splash-tagline">Sistema de Gestão</p>
         </div>
 

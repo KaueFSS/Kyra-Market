@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { IconSearch } from "./Icons";
 
 function SearchBarPage({
   label = "Pesquisar",
@@ -48,7 +49,7 @@ function SearchBarPage({
     <div className="searchbar-page-wrap">
       {label && <label className="searchbar-page-label">{label}</label>}
       <div className="searchbar-page-input-wrap">
-        <span className="searchbar-page-icon" aria-hidden="true">🔍</span>
+        <span className="searchbar-page-icon" aria-hidden="true"><IconSearch width={18} height={18} /></span>
         <input
           type="text"
           className="searchbar-page-input"
@@ -64,7 +65,7 @@ function SearchBarPage({
             aria-label="Limpar pesquisa"
             title="Limpar"
           >
-            ✕
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>
         )}
       </div>
