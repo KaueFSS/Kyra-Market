@@ -18,7 +18,7 @@
 
 <br />
 
-<img src="docs/screenshots/inicio.png" alt="Tela inicial: vendas do dia, estoque baixo, clientes, fiado e últimas vendas" width="100%" />
+<img src="docs/screenshots/inicio-v2.png" alt="Tela inicial: vendas do dia, estoque baixo, clientes, fiado e últimas vendas" width="100%" />
 
 </div>
 
@@ -49,11 +49,11 @@ O Kyra Market é a resposta: um sistema web completo que **roda localmente, sem 
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/nova-venda.png" alt="Cadastro de venda com itens" /><br /><sub><b>Nova venda</b>: dados da venda e itens, com busca de funcionário, cliente e produto.</sub></td>
-<td width="50%"><img src="docs/screenshots/compras.png" alt="Lista de compras de fornecedores" /><br /><sub><b>Compras</b>: status de entrega, fornecedor, responsável e valor.</sub></td>
+<td width="50%"><img src="docs/screenshots/nova-venda-v2.png" alt="Cadastro de venda com itens" /><br /><sub><b>Nova venda</b>: dados da venda e itens, com busca de funcionário, cliente e produto.</sub></td>
+<td width="50%"><img src="docs/screenshots/compras-v2.png" alt="Lista de compras de fornecedores" /><br /><sub><b>Compras</b>: status de entrega, fornecedor, responsável e valor.</sub></td>
 </tr>
 <tr>
-<td colspan="2"><img src="docs/screenshots/clientes.png" alt="Lista de clientes com saldo de fiado" /><br /><sub><b>Clientes</b>: busca, filtro de fiado, saldo em aberto, total comprado e data da última compra.</sub></td>
+<td colspan="2"><img src="docs/screenshots/clientes-v2.png" alt="Lista de clientes com saldo de fiado" /><br /><sub><b>Clientes</b>: busca, filtro de fiado, saldo em aberto, total comprado e data da última compra.</sub></td>
 </tr>
 </table>
 
