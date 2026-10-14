@@ -45,55 +45,16 @@ function Layout({ children }) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // Spotlight: luz seguindo o cursor sobre cards (estilo Linear/Stripe).
-  // Throttled via requestAnimationFrame — sem overhead perceptível.
-  useEffect(() => {
-    let rafId = null;
-    let lastEvent = null;
-
-    function process() {
-      rafId = null;
-      if (!lastEvent) return;
-      const ev = lastEvent;
-      const cards = document.querySelectorAll(".stat-card, .quicknav-card, .home-panel");
-      cards.forEach((card) => {
-        const rect = card.getBoundingClientRect();
-        const inside =
-          ev.clientX >= rect.left &&
-          ev.clientX <= rect.right &&
-          ev.clientY >= rect.top &&
-          ev.clientY <= rect.bottom;
-        if (inside) {
-          card.style.setProperty("--mx", `${ev.clientX - rect.left}px`);
-          card.style.setProperty("--my", `${ev.clientY - rect.top}px`);
-          if (!card.classList.contains("has-spotlight")) {
-            card.classList.add("has-spotlight");
-          }
-        } else if (card.classList.contains("has-spotlight")) {
-          card.classList.remove("has-spotlight");
-        }
-      });
-    }
-
-    function onMove(e) {
-      lastEvent = e;
-      if (rafId == null) rafId = requestAnimationFrame(process);
-    }
-
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      if (rafId != null) cancelAnimationFrame(rafId);
-    };
-  }, []);
 
   return (
     <>
       {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
-      <BarraNavegacao onOpenSearch={() => setSearchOpen(true)} />
-      <main className="app-main">
-        {children}
-      </main>
+      <div className="app-shell">
+        <BarraNavegacao onOpenSearch={() => setSearchOpen(true)} />
+        <main className="app-main">
+          {children}
+        </main>
+      </div>
       <Toast />
       <ConfirmDialog />
     </>
