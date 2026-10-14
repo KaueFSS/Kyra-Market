@@ -55,16 +55,16 @@ function EditarVenda() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Venda</h1>
+      <h1 className="page-title">Editar venda</h1>
       <p className="page-subtitle">ID: {id}</p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
-        <FormInput label="Nome da Venda" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Venda Balcão - Manhã" />
-        <FormInput label="Data da Venda" name="data_venda" type="date" value={form.data_venda} onChange={handleChange} required />
+        <FormInput label="Nome da venda" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Venda Balcão - Manhã" />
+        <FormInput label="Data da venda" name="data_venda" type="date" value={form.data_venda} onChange={handleChange} required />
         <FormInput label="Hora" name="hora" type="time" value={form.hora} onChange={handleChange} required />
-        <FormSelect label="Forma de Pagamento" name="forma_pagamento" value={form.forma_pagamento} onChange={handleChange}
+        <FormSelect label="Forma de pagamento" name="forma_pagamento" value={form.forma_pagamento} onChange={handleChange}
           options={[
             { value: "dinheiro", label: "Dinheiro" },
             { value: "pix", label: "PIX" },
@@ -81,7 +81,7 @@ function EditarVenda() {
         />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/vendas")}>← Voltar</button>
         </div>
       </form>

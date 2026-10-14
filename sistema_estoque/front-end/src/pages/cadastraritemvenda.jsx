@@ -66,7 +66,7 @@ function CadastrarItemVenda() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Item de Venda</h1>
+      <h1 className="page-title">Cadastrar item de venda</h1>
       <p className="page-subtitle">Formulário para adicionar produtos a uma venda existente.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -82,24 +82,24 @@ function CadastrarItemVenda() {
         <FormInput label="Quantidade" name="quantidade_vendida" type="number" value={item.quantidade_vendida} onChange={handleChange} required />
 
         <div className="form-group">
-          <label className="form-label">Preço Unitário (R$)</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--text-secondary)", maxWidth: 400 }}>
+          <label className="form-label">Preço unitário (R$)</label>
+          <div className="form-readonly">
             {formatarMoeda(precoUnitario)}
           </div>
-          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: 4 }}>Preenchido automaticamente ao selecionar o produto</p>
+          <p className="form-field-hint">Preenchido automaticamente ao selecionar o produto</p>
         </div>
 
         <FormInput label="Desconto (%)" name="desconto_aplicado" type="number" step="1" value={item.desconto_aplicado} onChange={handleChange} placeholder="Ex: 10" />
 
         <div className="form-group">
           <label className="form-label">Subtotal calculado</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: subtotal >= 0 ? "var(--accent-green)" : "var(--accent-red)", fontWeight: 600, maxWidth: 400 }}>
+          <div className={`form-readonly form-readonly-strong${subtotal < 0 ? " is-negative" : ""}`}>
             {formatarMoeda(subtotal >= 0 ? subtotal : 0)}
           </div>
         </div>
 
         <div className="form-actions">
-          <BotaoSalvar texto="Adicionar à Venda" />
+          <BotaoSalvar texto="Adicionar à venda" />
         </div>
       </form>
     </div>

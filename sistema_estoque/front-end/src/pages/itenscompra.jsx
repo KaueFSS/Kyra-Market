@@ -34,10 +34,10 @@ function ItensCompra() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Itens de Compra</h1>
+      <h1 className="page-title">Itens de compra</h1>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && itens.length === 0 && (
         <p className="empty-state">Nenhum item encontrado.</p>
       )}
@@ -50,9 +50,9 @@ function ItensCompra() {
                 <tr>
                   <th>Compra</th>
                   <th>Produto</th>
-                  <th>Quantidade</th>
-                  <th>Valor Unitário</th>
-                  <th>Total</th>
+                  <th className="cell-right">Quantidade</th>
+                  <th className="cell-right">Valor unitário</th>
+                  <th className="cell-right">Total</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -61,9 +61,9 @@ function ItensCompra() {
                   <tr key={item.id_item_compra}>
                     <td>{item.compra}</td>
                     <td>{item.produto_nome || item.produto}</td>
-                    <td>{item.quantidade}</td>
-                    <td>{formatarMoeda(item.valor_unitario)}</td>
-                    <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>
+                    <td className="cell-num">{item.quantidade}</td>
+                    <td className="cell-num">{formatarMoeda(item.valor_unitario)}</td>
+                    <td className="cell-num cell-strong">
                       {formatarMoeda(item.quantidade * parseFloat(item.valor_unitario))}
                     </td>
                     <td>

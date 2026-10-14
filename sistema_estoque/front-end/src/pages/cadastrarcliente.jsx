@@ -88,8 +88,8 @@ function CadastrarCliente() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Cliente</h1>
-      <p className="page-subtitle">Formulário para cadastrar um novo cliente. <kbd style={{ fontSize:"0.72rem", background:"rgba(255,255,255,0.07)", border:"1px solid var(--border)", borderRadius:4, padding:"1px 5px" }}>Ctrl+Enter</kbd> para salvar</p>
+      <h1 className="page-title">Cadastrar cliente</h1>
+      <p className="page-subtitle">Formulário para cadastrar um novo cliente. <kbd>Ctrl+Enter</kbd> para salvar</p>
 
       <MensagemErro mensagem={erro} />
 
@@ -97,14 +97,14 @@ function CadastrarCliente() {
         <FormInput label="Nome" name="nome" value={cliente.nome} onChange={alterarCampo} required placeholder="Ex: João Silva" error={erros.nome} />
         <FormInput label="Telefone" name="telefone" value={cliente.telefone} onChange={alterarCampo} placeholder="(21) 99999-9999" error={erros.telefone} hint="Formatado automaticamente" />
         <FormInput label="Bairro" name="bairro" value={cliente.bairro} onChange={alterarCampo} placeholder="Ex: Copacabana" />
-        <FormSelect label="Possui Fiado" name="possui_fiado" value={cliente.possui_fiado} onChange={alterarCampo}
+        <FormSelect label="Possui fiado" name="possui_fiado" value={cliente.possui_fiado} onChange={alterarCampo}
           options={[{ value: "false", label: "Não" }, { value: "true", label: "Sim" }]}
         />
         <FormInput label="Saldo inicial de fiado (R$)" name="saldo_fiado" type="number" step="0.01" value={cliente.saldo_fiado} onChange={alterarCampo} placeholder="0.00" hint="Saldo maior que zero marca fiado automaticamente." />
-        <FormInput label="Data de Cadastro" name="data_cadastro" type="date" value={cliente.data_cadastro} onChange={alterarCampo} required />
+        <FormInput label="Data de cadastro" name="data_cadastro" type="date" value={cliente.data_cadastro} onChange={alterarCampo} required />
 
         <div className="form-actions">
-          <BotaoSalvar texto={salvando ? "Salvando…" : "Cadastrar Cliente"} />
+          <BotaoSalvar texto={salvando ? "Salvando…" : "Cadastrar cliente"} />
           <button type="button" className="btn btn-back" onClick={() => navigate("/clientes")}>← Voltar</button>
         </div>
       </form>

@@ -6,6 +6,7 @@ import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import { formatarFormaPagamento, formatarMoeda, formatarData } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 
 const FORMAS = [
   { value: "", label: "Todos" },
@@ -181,10 +182,10 @@ function Vendas() {
     .filter((v) => selecionados.has(v.id_venda))
     .reduce((acc, v) => acc + Number(v.total || 0), 0);
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active
           ? <span className={`th-sort-${sortDir}-arrow`}>{sortDir === "asc" ? "↑" : "↓"}</span>
@@ -199,11 +200,11 @@ function Vendas() {
         <div>
           <h1 className="page-title">Vendas</h1>
         </div>
-        <Link to="/vendas/novo" className="btn-add">+ Nova Venda</Link>
+        <Link to="/vendas/novo" className="btn-add"><IconPlus width={16} height={16} />Nova venda</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando vendas...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && vendas.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhuma venda encontrada para "${termoBusca}".` : "Nenhuma venda encontrada."}
@@ -212,15 +213,13 @@ function Vendas() {
 
       {(vendas.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar vendas"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite nome da venda, cliente, funcionário, ID..."
-          />
-
-          {/* Filtros */}
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar vendas"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite nome da venda, cliente, funcionário, ID..."
+            />
             <div className="filter-item">
               <span className="filter-label">Pagamento</span>
               <select className="filter-select" value={filtroForma} onChange={(e) => { setFiltroForma(e.target.value); setSelecionados(new Set()); }}>
@@ -237,7 +236,7 @@ function Vendas() {
             </div>
             {(filtroForma || filtroDataInicio || filtroDataFim) && (
               <button className="filter-reset" onClick={() => { setFiltroForma(""); setFiltroDataInicio(""); setFiltroDataFim(""); setSelecionados(new Set()); }}>
-                ✕ Limpar filtros
+                Limpar filtros
               </button>
             )}
           </div>
@@ -247,8 +246,8 @@ function Vendas() {
             <span><strong>{vendasFiltradas.length}</strong> venda{vendasFiltradas.length !== 1 ? "s" : ""} exibida{vendasFiltradas.length !== 1 ? "s" : ""}</span>
             <span>Total: <span className="totalizador-valor">{formatarMoeda(totalFiltrado)}</span></span>
             {selecionados.size > 0 && (
-              <span style={{ color: "var(--accent-blue)" }}>
-                {selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""} — <strong style={{ color: "var(--accent-blue)" }}>{formatarMoeda(totalSelecionado)}</strong>
+              <span className="totalizador-sel">
+                {selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""} — <strong>{formatarMoeda(totalSelecionado)}</strong>
               </span>
             )}
           </div>
@@ -258,7 +257,7 @@ function Vendas() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionadas"}
+                {excluindo ? "Excluindo..." : "Excluir selecionadas"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -277,7 +276,7 @@ function Vendas() {
                   <Th col="forma_pagamento" label="Pagamento" />
                   <Th col="funcionario" label="Funcionário" />
                   <Th col="cliente" label="Cliente" />
-                  <Th col="total" label="Total" />
+                  <Th col="total" label="Total" num />
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -296,12 +295,12 @@ function Vendas() {
                           {copiado === v.id_venda && <span className="copy-id-tooltip">ID da venda copiado!</span>}
                         </span>
                       </td>
-                      <td>{formatarData(v.data_venda)}</td>
+                      <td className="cell-nowrap">{formatarData(v.data_venda)}</td>
                       <td>{v.hora ? v.hora.slice(0, 5) : "—"}</td>
-                      <td><span className={`badge ${fp.cls}`}>{fp.icon} {fp.label}</span></td>
+                      <td><span className={`badge ${fp.cls}`}>{fp.label}</span></td>
                       <td>{v.funcionario_nome || v.funcionario}</td>
-                      <td>{v.cliente_nome || <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
-                      <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>{formatarMoeda(v.total || 0)}</td>
+                      <td>{v.cliente_nome || <span className="cell-muted">—</span>}</td>
+                      <td className="cell-num cell-strong">{formatarMoeda(v.total || 0)}</td>
                       <td>
                         <div className="table-actions">
                           <Link to={`/vendas/${v.id_venda}`}>Ver detalhes</Link>
@@ -319,12 +318,12 @@ function Vendas() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

@@ -55,32 +55,32 @@ function EditarCompra() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Compra</h1>
+      <h1 className="page-title">Editar compra</h1>
       <p className="page-subtitle">ID: {id}</p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
-        <FormInput label="Nome da Compra" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Reposição de Laticínios" />
+        <FormInput label="Nome da compra" name="nome" value={form.nome || ""} onChange={handleChange} placeholder="Ex: Reposição de Laticínios" />
         <FormSelect label="Fornecedor" name="fornecedor" value={form.fornecedor} onChange={handleChange}
           options={fornecedores.map((f) => ({ value: f.id_fornecedor, label: f.nome_fantasia || f.razao_social }))}
         />
         <FormSelect label="Funcionário" name="funcionario" value={form.funcionario} onChange={handleChange}
           options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
         />
-        <FormInput label="Data da Compra" name="data_compra" type="date" value={form.data_compra} onChange={handleChange} required />
+        <FormInput label="Data da compra" name="data_compra" type="date" value={form.data_compra} onChange={handleChange} required />
         <FormSelect label="Status" name="status" value={form.status} onChange={handleChange}
           options={[{ value: "Pendente", label: "Pendente" }, { value: "Entregue", label: "Entregue" }, { value: "Cancelada", label: "Cancelada" }]}
         />
         <FormSelect label="Entregue?" name="entregue" value={form.entregue} onChange={handleChange}
           options={[{ value: "false", label: "Não" }, { value: "true", label: "Sim" }]}
         />
-        <FormInput label="Data de Entrega" name="data_entrega" type="date" value={form.data_entrega || ""} onChange={handleChange} />
-        <FormInput label="Nota Fiscal" name="nota_fiscal" value={form.nota_fiscal || ""} onChange={handleChange} />
-        <FormInput label="Valor Total (R$)" name="valor_total" type="number" step="0.01" value={form.valor_total} onChange={handleChange} required />
+        <FormInput label="Data de entrega" name="data_entrega" type="date" value={form.data_entrega || ""} onChange={handleChange} />
+        <FormInput label="Nota fiscal" name="nota_fiscal" value={form.nota_fiscal || ""} onChange={handleChange} />
+        <FormInput label="Valor total (R$)" name="valor_total" type="number" step="0.01" value={form.valor_total} onChange={handleChange} required />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/compras")}>← Voltar</button>
         </div>
       </form>

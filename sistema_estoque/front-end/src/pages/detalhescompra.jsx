@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../services/api";
-import { formatarMoeda } from "../utils/formatadores";
+import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function DetalhesCompra() {
   const { id } = useParams();
@@ -44,62 +44,62 @@ function DetalhesCompra() {
 
   return (
     <div className="page-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+      <div className="page-header-row">
         <div>
-          <h1 className="page-title" style={{ marginBottom: 4 }}>Detalhes da Compra</h1>
-          <p className="page-subtitle" style={{ marginBottom: 0 }}>Compra {compra.id_compra}{compra.nome ? ` — ${compra.nome}` : ""}</p>
+          <h1 className="page-title">Detalhes da compra</h1>
+          <p className="page-subtitle">Compra {compra.id_compra}{compra.nome ? ` — ${compra.nome}` : ""}</p>
         </div>
         <Link to="/compras" className="btn btn-back">← Voltar</Link>
       </div>
 
-      <div className="card" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 20, marginBottom: 24 }}>
+      <div className="card detail-grid">
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Fornecedor</p>
-          <p style={{ fontWeight: 600 }}>{compra.fornecedor_nome || compra.fornecedor || "—"}</p>
+          <p className="detail-label">Fornecedor</p>
+          <p className="detail-value">{compra.fornecedor_nome || compra.fornecedor || "—"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Funcionário</p>
-          <p style={{ fontWeight: 600 }}>{compra.funcionario_nome || compra.funcionario || "—"}</p>
+          <p className="detail-label">Funcionário</p>
+          <p className="detail-value">{compra.funcionario_nome || compra.funcionario || "—"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Data da Compra</p>
-          <p style={{ fontWeight: 600 }}>{compra.data_compra || "—"}</p>
+          <p className="detail-label">Data da compra</p>
+          <p className="detail-value">{formatarData(compra.data_compra)}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Status</p>
+          <p className="detail-label">Status</p>
           <span className={`badge ${statusCls}`}>{compra.status || "Sem status"}</span>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Entregue</p>
+          <p className="detail-label">Entregue</p>
           <span className={`badge ${compra.entregue ? "badge-green" : "badge-gray"}`}>
             {compra.entregue ? "Sim" : "Não"}
           </span>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Nota Fiscal</p>
-          <p style={{ fontWeight: 600 }}>{compra.nota_fiscal || "Não informada"}</p>
+          <p className="detail-label">Nota fiscal</p>
+          <p className="detail-value">{compra.nota_fiscal || "Não informada"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Valor Total</p>
-          <p style={{ fontWeight: 700, fontSize: "1.2rem", color: "var(--accent-green)" }}>{formatarMoeda(compra.valor_total)}</p>
+          <p className="detail-label">Valor total</p>
+          <p className="detail-value detail-value-lg">{formatarMoeda(compra.valor_total)}</p>
         </div>
       </div>
 
-      <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
-        Produtos da Compra
+      <h2 className="section-heading">
+        Produtos da compra
       </h2>
 
       {itens.length === 0 ? (
-        <p style={{ color: "var(--text-secondary)" }}>Nenhum item vinculado a esta compra.</p>
+        <p className="empty-state">Nenhum item vinculado a esta compra.</p>
       ) : (
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
                 <th>Produto</th>
-                <th>Quantidade</th>
-                <th>Valor Unitário</th>
-                <th>Total</th>
+                <th className="cell-right">Quantidade</th>
+                <th className="cell-right">Valor unitário</th>
+                <th className="cell-right">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -108,9 +108,9 @@ function DetalhesCompra() {
                 return (
                   <tr key={item.id_item_compra}>
                     <td>{item.produto_nome || item.produto}</td>
-                    <td>{item.quantidade}</td>
-                    <td>{formatarMoeda(item.valor_unitario)}</td>
-                    <td style={{ color: "var(--accent-green)", fontWeight: 600 }}>{formatarMoeda(total)}</td>
+                    <td className="cell-num">{item.quantidade}</td>
+                    <td className="cell-num">{formatarMoeda(item.valor_unitario)}</td>
+                    <td className="cell-num cell-strong">{formatarMoeda(total)}</td>
                   </tr>
                 );
               })}

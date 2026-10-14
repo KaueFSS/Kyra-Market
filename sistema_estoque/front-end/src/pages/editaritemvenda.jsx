@@ -48,11 +48,11 @@ function EditarItemVenda() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Item de Venda</h1>
+      <h1 className="page-title">Editar item de venda</h1>
       <p className="page-subtitle">
-        Venda: <strong style={{ color: "var(--text-primary)" }}>{form.venda}</strong>
+        Venda: <strong>{form.venda}</strong>
         {" | "}
-        Produto: <strong style={{ color: "var(--text-primary)" }}>{form.produto_nome || form.produto}</strong>
+        Produto: <strong>{form.produto_nome || form.produto}</strong>
       </p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -62,8 +62,8 @@ function EditarItemVenda() {
         <FormInput label="Quantidade" name="quantidade_vendida" type="number" value={form.quantidade_vendida} onChange={handleChange} required />
 
         <div className="form-group">
-          <label className="form-label">Preço Unitário (R$)</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--text-secondary)", maxWidth: 400 }}>
+          <label className="form-label">Preço unitário (R$)</label>
+          <div className="form-readonly">
             {formatarMoeda(preco)}
           </div>
         </div>
@@ -72,13 +72,13 @@ function EditarItemVenda() {
 
         <div className="form-group">
           <label className="form-label">Subtotal calculado</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--accent-green)", fontWeight: 600, maxWidth: 400 }}>
+          <div className="form-readonly form-readonly-strong">
             {formatarMoeda(subtotal)}
           </div>
         </div>
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/itens-venda")}>← Voltar</button>
         </div>
       </form>

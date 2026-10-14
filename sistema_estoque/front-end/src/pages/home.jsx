@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet } from "../utils/apiCache";
-import { formatarFormaPagamento, formatarMoeda } from "../utils/formatadores";
+import { formatarData, formatarFormaPagamento, formatarMoeda } from "../utils/formatadores";
+import {
+  IconProdutos, IconCompras, IconClientes, IconFornecedores, IconFuncionarios, IconDespesas,
+  IconAlerta, IconGrafico, IconCarteira, IconDinheiro, IconPlus,
+} from "../components/Icons";
 
-const quickNav = [
-  { label: "Produtos",      to: "/produtos",     icon: "/icons/Produto_Botão.png" },
-  { label: "Estoque",       to: "/estoques",     icon: "/icons/Estoque_botão.png" },
-  { label: "Vendas",        to: "/vendas",       icon: "/icons/Vendas_botão.png" },
-  { label: "Clientes",      to: "/clientes",     icon: "/icons/Clientes.png" },
-  { label: "Fornecedores",  to: "/fornecedores", icon: "/icons/Fornecedores_Botão.png" },
-  { label: "Funcionários",  to: "/funcionarios", icon: "/icons/funcionario_botão.png" },
+const atalhos = [
+  { label: "Nova compra",      to: "/compras/novo",      Icon: IconCompras },
+  { label: "Novo produto",     to: "/produtos/novo",     Icon: IconProdutos },
+  { label: "Novo cliente",     to: "/clientes/novo",     Icon: IconClientes },
+  { label: "Nova despesa",     to: "/despesas/novo",     Icon: IconDespesas },
+  { label: "Novo fornecedor",  to: "/fornecedores/novo", Icon: IconFornecedores },
+  { label: "Novo funcionário", to: "/funcionarios/novo", Icon: IconFuncionarios },
 ];
 
 function Home() {
+  const navigate = useNavigate();
   const [vendasHoje, setVendasHoje] = useState({ count: 0, total: 0 });
   const [ultimasVendas, setUltimasVendas] = useState([]);
   const [alertasEstoque, setAlertasEstoque] = useState([]);
@@ -92,143 +97,106 @@ function Home() {
     carregar();
   }, []);
 
+  const hoje = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const lucro = lucroMensal ? Number(lucroMensal.lucro) : null;
+
   return (
     <div className="page-container">
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">Visão geral</h1>
+          <p className="page-subtitle">{hoje.charAt(0).toUpperCase() + hoje.slice(1)}</p>
+        </div>
+        <div className="page-header-actions">
+          <Link to="/dashboard" className="btn btn-secondary"><IconGrafico width={16} height={16} />Análises</Link>
+          <Link to="/vendas/novo" className="btn-add"><IconPlus width={16} height={16} />Nova venda</Link>
+        </div>
+      </div>
+
       {carregando ? (
-        <p className="loading-text">Carregando dashboard...</p>
+        <p className="loading-text">Carregando...</p>
       ) : (
         <>
-          {/* Stats Row */}
           <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon green">
-                <img src="/icons/Vendas Hoje.png" alt="Vendas" style={{ width: 54, height: 54, objectFit: "contain" }} />
-              </div>
-              <div className="stat-body">
-                <div className="stat-label">Vendas Hoje</div>
-                <div className="stat-value green">{formatarMoeda(vendasHoje.total)}</div>
-                <div className="stat-sub">{vendasHoje.count} venda{vendasHoje.count !== 1 ? "s" : ""} registrada{vendasHoje.count !== 1 ? "s" : ""}</div>
-                {lucroMensal !== null && (
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginBottom: 2 }}>
-                      Lucro de {lucroMensal.mes}
-                    </div>
-                    <div style={{
-                      fontSize: "0.88rem",
-                      fontWeight: 700,
-                      color: lucroMensal.lucro >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                    }}>
-                      {lucroMensal.lucro >= 0 ? "▲ " : "▼ "}{formatarMoeda(Math.abs(lucroMensal.lucro))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon orange">
-                <img src="/icons/estroque_aviso.png" alt="Estoque" style={{ width: 54, height: 54, objectFit: "contain" }} />
-              </div>
-              <div className="stat-body">
-                <div className="stat-label">Estoque Baixo</div>
-                <div className="stat-value orange">{alertasEstoque.length}</div>
-                <div className="stat-sub">produtos abaixo do mínimo</div>
-                {semEstoque > 0 && (
-                  <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 5 }}>
-                    <span style={{
-                      background: "rgba(239,68,68,0.15)",
-                      color: "var(--accent-red)",
-                      fontSize: "0.7rem",
-                      fontWeight: 700,
-                      padding: "2px 7px",
-                      borderRadius: 5,
-                      letterSpacing: "0.02em",
-                    }}>
-                      🔴 {semEstoque} sem estoque
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon blue">
-                <img src="/icons/Clientes.png" alt="Clientes" style={{ width: 54, height: 54, objectFit: "contain" }} />
-              </div>
-              <div className="stat-body">
-                <div className="stat-label">Clientes</div>
-                <div className="stat-value blue">{totalClientes}</div>
-                <div className="stat-sub">clientes cadastrados</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon purple">
-                <img src="/icons/Fiado.png" alt="Fiado" style={{ width: 54, height: 54, objectFit: "contain" }} />
-              </div>
-              <div className="stat-body">
-                <div className="stat-label">Clientes com Fiado</div>
-                <div className="stat-value purple">{clientesFiado.count}</div>
-                <div className="stat-sub">total {formatarMoeda(clientesFiado.total)}</div>
-              </div>
-            </div>
-
-            <Link to="/dashboard" className="stat-card stat-card-dash">
-              <div className="stat-icon" style={{ background: "rgba(16,185,129,0.15)" }}>
-                <img src="/icons/Dashboard.png" alt="Dashboard" style={{ width: 54, height: 54, objectFit: "contain" }} />
-              </div>
-              <div className="stat-body">
-                <div className="stat-label">Metabase</div>
-                <div className="stat-value" style={{ fontSize: "1.1rem", color: "var(--accent-green)", marginTop: 6 }}>Ver Dashboard →</div>
-                <div className="stat-sub">gráficos e relatórios</div>
-              </div>
-            </Link>
+            <Indicador
+              Icon={IconDinheiro}
+              label="Vendas hoje"
+              valor={formatarMoeda(vendasHoje.total)}
+              detalhe={`${vendasHoje.count} venda${vendasHoje.count !== 1 ? "s" : ""} registrada${vendasHoje.count !== 1 ? "s" : ""}`}
+              to="/vendas"
+            />
+            <Indicador
+              Icon={IconGrafico}
+              label={lucroMensal ? `Lucro de ${lucroMensal.mes}` : "Lucro do mês"}
+              valor={lucro === null ? "—" : formatarMoeda(lucro)}
+              tom={lucro !== null && lucro < 0 ? "negativo" : ""}
+              detalhe={lucroMensal ? `Receita de ${formatarMoeda(lucroMensal.receita)}` : "Sem dados do mês"}
+              to="/dashboard"
+            />
+            <Indicador
+              Icon={IconAlerta}
+              label="Estoque baixo"
+              valor={alertasEstoque.length}
+              tom={alertasEstoque.length > 0 ? "alerta" : ""}
+              detalhe={semEstoque > 0 ? `${semEstoque} sem estoque` : "produtos abaixo do mínimo"}
+              to="/estoques"
+            />
+            <Indicador
+              Icon={IconCarteira}
+              label="Fiado em aberto"
+              valor={formatarMoeda(clientesFiado.total)}
+              detalhe={`${clientesFiado.count} cliente${clientesFiado.count !== 1 ? "s" : ""} com saldo`}
+              to="/clientes"
+            />
+            <Indicador
+              Icon={IconClientes}
+              label="Clientes"
+              valor={totalClientes}
+              detalhe="cadastrados"
+              to="/clientes"
+            />
           </div>
 
-          {/* Quick Navigation */}
+          <h2 className="section-heading">Atalhos</h2>
           <div className="quicknav-grid">
-            {quickNav.map((item) => (
+            {atalhos.map((item) => (
               <Link key={item.to} to={item.to} className="quicknav-card">
-                <div className="quicknav-icon">
-                <img src={item.icon} alt={item.label} style={{ width: 44, height: 44, objectFit: "contain" }} />
-              </div>
+                <span className="quicknav-icon"><item.Icon width={18} height={18} /></span>
                 {item.label}
               </Link>
             ))}
           </div>
 
-          {/* Bottom Panels */}
           <div className="home-bottom">
-            {/* Últimas Vendas */}
-            <div className="home-panel home-panel-flex">
+            <section className="home-panel">
               <div className="home-panel-header">
-                <span className="home-panel-title">📋 Últimas Vendas</span>
+                <h2 className="home-panel-title">Últimas vendas</h2>
                 <Link to="/vendas" className="home-panel-ver-todas">Ver todas</Link>
               </div>
               <div className="home-panel-body">
                 {ultimasVendas.length === 0 ? (
                   <p className="empty-state">Nenhuma venda registrada.</p>
                 ) : (
-                  <table className="data-table">
+                  <table className="data-table data-table-compact">
                     <thead>
                       <tr>
-                        <th>ID</th>
-                        <th>Hora</th>
+                        <th>Venda</th>
+                        <th>Data</th>
                         <th>Pagamento</th>
-                        <th>Valor</th>
+                        <th className="cell-right">Valor</th>
                       </tr>
                     </thead>
                     <tbody>
                       {ultimasVendas.map((v) => {
                         const fp = formatarFormaPagamento(v.forma_pagamento);
                         return (
-                          <tr key={v.id_venda}>
-                            <td>#{v.id_venda}</td>
-                            <td>{v.hora ? v.hora.slice(0, 5) : "—"}</td>
-                            <td><span className={`badge ${fp.cls}`}>{fp.icon} {fp.label}</span></td>
-                            <td style={{ color: "var(--accent-green)", fontWeight: 600 }}>
-                              {formatarMoeda(v.total || 0)}
+                          <tr key={v.id_venda} onClick={() => navigate(`/vendas/${v.id_venda}`)}>
+                            <td className="cell-id">{v.id_venda}</td>
+                            <td className="cell-muted">
+                              {formatarData(v.data_venda)}{v.hora ? `, ${v.hora.slice(0, 5)}` : ""}
                             </td>
+                            <td><span className={`badge ${fp.cls}`}>{fp.label}</span></td>
+                            <td className="cell-num cell-strong cell-right">{formatarMoeda(v.total || 0)}</td>
                           </tr>
                         );
                       })}
@@ -236,100 +204,68 @@ function Home() {
                   </table>
                 )}
               </div>
-              <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                <Link to="/vendas" style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                  Ver todas as vendas →
-                </Link>
-              </div>
-            </div>
+            </section>
 
-            {/* Produtos com Estoque Baixo */}
-            <div className="home-panel home-panel-flex">
+            <section className="home-panel">
               <div className="home-panel-header">
-                <span className="home-panel-title" style={{ color: "var(--accent-orange)" }}>
-                  ⚠️ Estoque Baixo
-                </span>
-                <Link to="/estoques" className="home-panel-ver-todas">Ver todos</Link>
+                <h2 className="home-panel-title">
+                  Estoque baixo
+                  {alertasEstoque.length > 0 && <span className="home-panel-count">{alertasEstoque.length}</span>}
+                </h2>
+                <Link to="/estoques" className="home-panel-ver-todas">Ver estoque</Link>
               </div>
               <div className="home-panel-body">
                 {alertasEstoque.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "32px 0" }}>
-                    <div style={{ fontSize: "2.5rem", marginBottom: 10 }}>✅</div>
-                    <p style={{ color: "var(--accent-green)", fontWeight: 600 }}>Estoque em dia!</p>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: 4 }}>
-                      Nenhum produto abaixo do mínimo.
-                    </p>
-                  </div>
+                  <p className="empty-state">Nenhum produto abaixo do mínimo.</p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <ul className="stock-list">
                     {alertasEstoque.map((e) => {
                       const atual = Number(e.quantidade_atual);
                       const minimo = Number(e.quantidade_minima);
                       const pct = minimo > 0 ? Math.min(100, Math.round((atual / minimo) * 100)) : 0;
                       const critico = atual === 0;
-                      const cor = critico ? "var(--accent-red)" : "var(--accent-orange)";
-
                       return (
-                        <div key={e.id_estoque} style={{
-                          background: "#f3f5f9",
-                          border: "1px solid #e1e5ed",
-                          borderRadius: 10,
-                          padding: "11px 16px",
-                        }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                            <span style={{ fontWeight: 600, fontSize: "0.88rem" }}>
-                              {e.produto_nome || e.produto}
-                            </span>
-                            <span style={{
-                              background: critico ? "var(--accent-red-bg)" : "var(--accent-orange-bg)",
-                              color: cor,
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              padding: "2px 7px",
-                              borderRadius: 5,
-                            }}>
-                              {critico ? "🔴 SEM ESTOQUE" : "🟡 BAIXO"}
+                        <li key={e.id_estoque} className="stock-row">
+                          <div className="stock-row-top">
+                            <span className="stock-name">{String(e.produto_nome || e.produto || "").replace(/\s+/g, " ")}</span>
+                            <span className={`badge ${critico ? "badge-red" : "badge-orange"}`}>
+                              {critico ? "Sem estoque" : "Baixo"}
                             </span>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{
-                              flex: 1,
-                              height: 8,
-                              background: "#dde2eb",
-                              borderRadius: 999,
-                              overflow: "hidden",
-                              position: "relative",
-                            }}>
-                              <div style={{
-                                width: `${pct}%`,
-                                height: "100%",
-                                background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
-                                borderRadius: 999,
-                                transition: "width 0.4s cubic-bezier(.4,0,.2,1)",
-                                boxShadow: "0 1px 3px rgba(245,158,11,0.3)",
-                              }} />
+                          <div className="stock-row-bottom">
+                            <div className="progress-bar">
+                              <div className="progress-bar-fill warn" style={{ width: `${pct}%` }} />
                             </div>
-                            <span style={{ color: cor, fontWeight: 700, fontSize: "0.85rem", minWidth: 64, textAlign: "right" }}>
-                              {atual} / {minimo} un
-                            </span>
+                            <span className="stock-qty">{atual} de {minimo} un</span>
                           </div>
-                        </div>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 )}
               </div>
-              <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                <Link to="/estoques" style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                  Ver todos os estoques →
-                </Link>
-              </div>
-            </div>
+            </section>
           </div>
         </>
       )}
     </div>
   );
+}
+
+function Indicador({ Icon, label, valor, detalhe, tom = "", to }) {
+  const corpo = (
+    <>
+      <div className="stat-top">
+        <span className="stat-label">{label}</span>
+        <span className="stat-icon"><Icon width={16} height={16} /></span>
+      </div>
+      <div className={`stat-value${tom ? ` ${tom}` : ""}`}>{valor}</div>
+      <div className="stat-sub">{detalhe}</div>
+    </>
+  );
+  return to
+    ? <Link to={to} className="stat-card">{corpo}</Link>
+    : <div className="stat-card">{corpo}</div>;
 }
 
 export default Home;

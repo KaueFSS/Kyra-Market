@@ -34,11 +34,11 @@ function ItensVenda() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Itens de Venda</h1>
+      <h1 className="page-title">Itens de venda</h1>
       <p className="page-subtitle">Produtos associados às vendas realizadas.</p>
 
       {carregando && <p className="loading-text">Carregando itens de venda...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && itensVenda.length === 0 && (
         <p className="empty-state">Nenhum item de venda encontrado.</p>
       )}
@@ -51,10 +51,10 @@ function ItensVenda() {
                 <tr>
                   <th>Venda</th>
                   <th>Produto</th>
-                  <th>Quantidade</th>
-                  <th>Preço Unitário</th>
-                  <th>Desconto</th>
-                  <th>Subtotal</th>
+                  <th className="cell-right">Quantidade</th>
+                  <th className="cell-right">Preço unitário</th>
+                  <th className="cell-right">Desconto</th>
+                  <th className="cell-right">Subtotal</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -63,10 +63,10 @@ function ItensVenda() {
                   <tr key={item.id_item_venda || index}>
                     <td>{item.venda}</td>
                     <td>{item.produto_nome || item.produto}</td>
-                    <td>{item.quantidade_vendida}</td>
-                    <td>{formatarMoeda(item.preco_unitario)}</td>
-                    <td style={{ color: "var(--accent-orange)" }}>{formatarMoeda(item.desconto_aplicado)}</td>
-                    <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>{formatarMoeda(item.subtotal)}</td>
+                    <td className="cell-num">{item.quantidade_vendida}</td>
+                    <td className="cell-num">{formatarMoeda(item.preco_unitario)}</td>
+                    <td className="cell-num">{formatarMoeda(item.desconto_aplicado)}</td>
+                    <td className="cell-num cell-strong">{formatarMoeda(item.subtotal)}</td>
                     <td>
                       <div className="table-actions">
                         <Link to={`/itens-venda/${item.id_item_venda}/editar`}>Editar</Link>

@@ -6,6 +6,7 @@ import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 const POR_PAGINA = 15;
@@ -168,10 +169,10 @@ function Funcionarios() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -182,10 +183,10 @@ function Funcionarios() {
     <div className="page-container">
       <div className="page-header-row">
         <h1 className="page-title">Funcionários</h1>
-        <Link to="/funcionarios/novo" className="btn-add">+ Novo Funcionário</Link>
+        <Link to="/funcionarios/novo" className="btn-add"><IconPlus width={16} height={16} />Novo funcionário</Link>
       </div>
 
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {funcionarios.length === 0 && !erro && (
         <p className="empty-state">
           {termoBusca ? `Nenhum funcionário encontrado para "${termoBusca}".` : "Nenhum funcionário encontrado."}
@@ -194,14 +195,13 @@ function Funcionarios() {
 
       {(funcionarios.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar funcionario"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite o nome do nome, cargo, turno, salario..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar funcionario"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite o nome do nome, cargo, turno, salario..."
+            />
             <div className="filter-item">
               <span className="filter-label">Status</span>
               <select className="filter-select" value={filtroAtivo} onChange={(e) => { setFiltroAtivo(e.target.value); setSelecionados(new Set()); }}>
@@ -218,9 +218,9 @@ function Funcionarios() {
               </select>
             </div>
             {(filtroAtivo || filtroCargo) && (
-              <button className="filter-reset" onClick={() => { setFiltroAtivo(""); setFiltroCargo(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroAtivo(""); setFiltroCargo(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <span style={{ marginLeft: "auto", fontSize: "0.82rem", color: "var(--text-secondary)", alignSelf: "flex-end" }}>
+            <span className="filter-count">
               {funcionariosFiltrados.length} funcionário{funcionariosFiltrados.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -229,7 +229,7 @@ function Funcionarios() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionado{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionados"}
+                {excluindo ? "Excluindo..." : "Excluir selecionados"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -246,7 +246,7 @@ function Funcionarios() {
                   <Th col="nome" label="Nome" />
                   <Th col="cargo" label="Cargo" />
                   <Th col="turno" label="Turno" />
-                  <Th col="salario" label="Salário" />
+                  <Th col="salario" label="Salário" num />
                   <Th col="horas_semanais" label="Horas/sem" />
                   <Th col="data_admissao" label="Admissão" />
                   <Th col="ativo" label="Ativo" />
@@ -270,12 +270,12 @@ function Funcionarios() {
                       <td>{f.nome}</td>
                       <td>{f.cargo}</td>
                       <td>{f.turno}</td>
-                      <td style={{ color: "var(--accent-green)" }}>{formatarMoeda(f.salario)}</td>
+                      <td className="cell-num">{formatarMoeda(f.salario)}</td>
                       <td>{f.horas_semanais}h</td>
-                      <td>{formatarData(f.data_admissao)}</td>
+                      <td className="cell-nowrap">{formatarData(f.data_admissao)}</td>
                       <td>
                         <span className={`badge ${f.ativo ? "badge-green" : "badge-gray"}`}>
-                          {f.ativo ? "✓ Ativo" : "Inativo"}
+                          {f.ativo ? "Ativo" : "Inativo"}
                         </span>
                       </td>
                       <td>
@@ -294,12 +294,12 @@ function Funcionarios() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={pagina <= 1}>← Anterior</button>
             <span className="pagination-info">Página {pagina} de {totalPaginas}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={pagina >= totalPaginas}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

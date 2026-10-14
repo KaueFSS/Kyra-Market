@@ -90,20 +90,22 @@ function EditarCliente() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Cliente</h1>
+      <h1 className="page-title">Editar cliente</h1>
       <p className="page-subtitle">ID: {id}</p>
 
-      <div className="card" style={{ maxWidth: 400, marginBottom: 20 }}>
-        <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-          Saldo Fiado: <strong style={{ color: form.saldo_fiado > 0 ? "var(--accent-purple)" : "var(--accent-green)" }}>
-            {formatarMoeda(form.saldo_fiado)}
-          </strong>
-        </p>
-        <p style={{ margin: "6px 0 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-          Total em compras: <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(form.total_valor)}</strong>
-        </p>
+      <div className="card summary-card">
+        <div className="summary-row">
+          <div>
+            <p className="detail-label">Saldo de fiado</p>
+            <p className={`detail-value detail-value-lg${Number(form.saldo_fiado || 0) > 0 ? " is-negative" : ""}`}>{formatarMoeda(form.saldo_fiado)}</p>
+          </div>
+          <div>
+            <p className="detail-label">Total em compras</p>
+            <p className="detail-value detail-value-lg">{formatarMoeda(form.total_valor)}</p>
+          </div>
+        </div>
         {Number(form.saldo_fiado || 0) > 0 && (
-          <div style={{ marginTop: 14 }}>
+          <div className="summary-pay">
             <FormInput
               label="Pagamento de fiado (R$)"
               name="pagamento_fiado"
@@ -114,7 +116,7 @@ function EditarCliente() {
               placeholder="0.00"
             />
             <button type="button" className="btn btn-primary" onClick={pagarFiado} disabled={pagandoFiado}>
-              {pagandoFiado ? "Registrando..." : "Registrar Pagamento"}
+              {pagandoFiado ? "Registrando..." : "Registrar pagamento"}
             </button>
           </div>
         )}
@@ -126,10 +128,10 @@ function EditarCliente() {
         <FormInput label="Nome" name="nome" value={form.nome} onChange={handleChange} required error={erros.nome} />
         <FormInput label="Telefone" name="telefone" value={form.telefone || ""} onChange={handleChange} placeholder="(21) 99999-9999" error={erros.telefone} hint="Formatado automaticamente" />
         <FormInput label="Bairro" name="bairro" value={form.bairro || ""} onChange={handleChange} />
-        <FormInput label="Data de Cadastro" name="data_cadastro" type="date" value={form.data_cadastro} onChange={handleChange} required />
+        <FormInput label="Data de cadastro" name="data_cadastro" type="date" value={form.data_cadastro} onChange={handleChange} required />
 
         <div className="form-actions">
-          <BotaoSalvar texto={salvando ? "Salvando…" : "Salvar Alterações"} />
+          <BotaoSalvar texto={salvando ? "Salvando…" : "Salvar alterações"} />
           <button type="button" className="btn btn-back" onClick={() => navigate("/clientes")}>← Voltar</button>
         </div>
       </form>

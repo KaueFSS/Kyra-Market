@@ -7,6 +7,7 @@ import { confirmDialog } from "../utils/confirmDialog";
 import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import { formatarMoeda } from "../utils/formatadores";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 
 function Produtos() {
   // barra de pesquisa (busca server-side via ?search=)
@@ -167,10 +168,10 @@ function Produtos() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -181,11 +182,11 @@ function Produtos() {
     <div className="page-container">
       <div className="page-header-row">
         <h1 className="page-title">Produtos</h1>
-        <Link to="/produtos/novo" className="btn-add">+ Novo Produto</Link>
+        <Link to="/produtos/novo" className="btn-add"><IconPlus width={16} height={16} />Novo produto</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && produtos.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhum produto encontrado para "${termoBusca}".` : "Nenhum produto encontrado."}
@@ -194,14 +195,13 @@ function Produtos() {
 
       {(produtos.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar produtos"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite nome do produto, fornecedor, marca..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar produtos"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite nome do produto, fornecedor, marca..."
+            />
             <div className="filter-item">
               <span className="filter-label">Categoria</span>
               <select className="filter-select" value={filtroCategoria} onChange={(e) => { setFiltroCategoria(e.target.value); setSelecionados(new Set()); }}>
@@ -217,9 +217,9 @@ function Produtos() {
               </select>
             </div>
             {(filtroCategoria || filtroMarca) && (
-              <button className="filter-reset" onClick={() => { setFiltroCategoria(""); setFiltroMarca(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroCategoria(""); setFiltroMarca(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <span style={{ marginLeft: "auto", fontSize: "0.82rem", color: "var(--text-secondary)", alignSelf: "flex-end" }}>
+            <span className="filter-count">
               {produtosFiltrados.length} produto{produtosFiltrados.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -228,7 +228,7 @@ function Produtos() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionado{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionados"}
+                {excluindo ? "Excluindo..." : "Excluir selecionados"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -247,8 +247,8 @@ function Produtos() {
                   <Th col="categoria" label="Categoria" />
                   <Th col="marca" label="Marca" />
                   <Th col="unidade" label="Unidade" />
-                  <Th col="preco_custo" label="Preço Custo" />
-                  <Th col="preco" label="Preço Venda" />
+                  <Th col="preco_custo" label="Preço custo" num />
+                  <Th col="preco" label="Preço venda" num />
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -271,8 +271,8 @@ function Produtos() {
                       <td>{p.categoria || "—"}</td>
                       <td>{p.marca || "—"}</td>
                       <td>{p.unidade || "—"}</td>
-                      <td style={{ color: "var(--text-secondary)" }}>{formatarMoeda(p.preco_custo)}</td>
-                      <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>{formatarMoeda(p.preco)}</td>
+                      <td className="cell-num cell-muted">{formatarMoeda(p.preco_custo)}</td>
+                      <td className="cell-num cell-strong">{formatarMoeda(p.preco)}</td>
                       <td>
                         <div className="table-actions">
                           <Link to={`/produtos/${p.id_produto}/editar`}>Editar</Link>
@@ -289,12 +289,12 @@ function Produtos() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

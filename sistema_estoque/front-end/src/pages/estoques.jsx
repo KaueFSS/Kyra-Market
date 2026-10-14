@@ -5,6 +5,7 @@ import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import SearchBar from "../components/SearchBarPage";
+import { formatarData } from "../utils/formatadores";
 
 function Estoques() {
   // barra de pesquisa (busca server-side via ?search=)
@@ -167,10 +168,10 @@ function Estoques() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -179,10 +180,12 @@ function Estoques() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Estoques</h1>
+      <div className="page-header-row">
+        <h1 className="page-title">Estoque</h1>
+      </div>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && estoques.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhum estoque encontrado para "${termoBusca}".` : "Nenhum estoque encontrado."}
@@ -191,28 +194,27 @@ function Estoques() {
 
       {(estoques.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar estoque"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite o nome do produto, quantidade, data..."
-          />
-
-          <div className="filter-bar" style={{ marginTop: 8 }}>
+          <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar estoque"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite o nome do produto, quantidade, data..."
+            />
             <div className="filter-item">
               <span className="filter-label">Status</span>
               <select className="filter-select" value={filtroStatus} onChange={(e) => { setFiltroStatus(e.target.value); setSelecionados(new Set()); }}>
                 <option value="">Todos</option>
-                <option value="ok">✓ OK</option>
-                <option value="baixo">⚠ Baixo</option>
-                <option value="sem">🔴 Sem estoque</option>
+                <option value="ok">Normal</option>
+                <option value="baixo">Baixo</option>
+                <option value="sem">Sem estoque</option>
               </select>
             </div>
             {filtroStatus && (
-              <button className="filter-reset" onClick={() => { setFiltroStatus(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroStatus(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <span style={{ marginLeft: "auto", fontSize: "0.82rem", color: "var(--text-secondary)", alignSelf: "flex-end" }}>
-              {estoquesFiltrados.length} item{estoquesFiltrados.length !== 1 ? "s" : ""}
+            <span className="filter-count">
+              {estoquesFiltrados.length} {estoquesFiltrados.length !== 1 ? "produtos" : "produto"}
             </span>
           </div>
 
@@ -220,7 +222,7 @@ function Estoques() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionado{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionados"}
+                {excluindo ? "Excluindo..." : "Excluir selecionados"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -234,10 +236,10 @@ function Estoques() {
                     <input type="checkbox" checked={selecionados.size === estoquesFiltrados.length && estoquesFiltrados.length > 0} onChange={toggleTodos} />
                   </th>
                   <Th col="produto_nome" label="Produto" />
-                  <Th col="quantidade_atual" label="Qtd. Atual" />
-                  <Th col="quantidade_minima" label="Qtd. Mínima" />
-                  <Th col="dt_ultima_entrada" label="Última Entrada" />
-                  <Th col="dt_ultima_saida" label="Última Saída" />
+                  <Th col="quantidade_atual" label="Qtd. atual" num />
+                  <Th col="quantidade_minima" label="Qtd. mínima" num />
+                  <Th col="dt_ultima_entrada" label="Última entrada" />
+                  <Th col="dt_ultima_saida" label="Última saída" />
                   <th>Status</th>
                   <th>Ações</th>
                 </tr>
@@ -246,7 +248,7 @@ function Estoques() {
                 {estoquesFiltrados.map((e) => {
                   const status = getStatus(e);
                   const sel = selecionados.has(e.id_estoque);
-                  const cor = status === "sem" ? "var(--accent-red)" : status === "baixo" ? "var(--accent-orange)" : "var(--accent-green)";
+                  const cor = status === "sem" ? "var(--accent-red)" : status === "baixo" ? "var(--accent-orange)" : "var(--text-primary)";
                   return (
                     <tr key={e.id_estoque} className={[sel ? "row-selected" : "", e.id_estoque === highlightId ? "row-highlight" : ""].filter(Boolean).join(" ")} onDoubleClick={() => navigate(`/estoques/${e.id_estoque}/editar`)}>
                       <td className="col-check">
@@ -258,13 +260,13 @@ function Estoques() {
                           {copiado === e.id_estoque && <span className="copy-id-tooltip">Copiado!</span>}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600, color: cor }}>{e.quantidade_atual}</td>
-                      <td>{e.quantidade_minima}</td>
-                      <td>{e.dt_ultima_entrada || "—"}</td>
-                      <td>{e.dt_ultima_saida || "—"}</td>
+                      <td className="cell-num cell-strong" style={{ color: cor }}>{e.quantidade_atual}</td>
+                      <td className="cell-num">{e.quantidade_minima}</td>
+                      <td className="cell-nowrap">{formatarData(e.dt_ultima_entrada)}</td>
+                      <td className="cell-nowrap">{formatarData(e.dt_ultima_saida)}</td>
                       <td>
                         <span className={`badge ${status === "sem" ? "badge-red" : status === "baixo" ? "badge-orange" : "badge-green"}`}>
-                          {status === "sem" ? "🔴 Sem estoque" : status === "baixo" ? "⚠ Baixo" : "✓ OK"}
+                          {status === "sem" ? "Sem estoque" : status === "baixo" ? "Baixo" : "Normal"}
                         </span>
                       </td>
                       <td>
@@ -283,12 +285,12 @@ function Estoques() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

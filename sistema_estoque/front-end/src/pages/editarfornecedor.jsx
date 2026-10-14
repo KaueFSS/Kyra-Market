@@ -77,32 +77,32 @@ function EditarFornecedor() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Fornecedor</h1>
+      <h1 className="page-title">Editar fornecedor</h1>
       <p className="page-subtitle">ID: {id}</p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit} className="form-container">
-        <FormInput label="Razão Social" name="razao_social" value={form.razao_social} onChange={handleChange} required error={erros.razao_social} />
-        <FormInput label="Nome Fantasia" name="nome_fantasia" value={form.nome_fantasia || ""} onChange={handleChange} />
+        <FormInput label="Razão social" name="razao_social" value={form.razao_social} onChange={handleChange} required error={erros.razao_social} />
+        <FormInput label="Nome fantasia" name="nome_fantasia" value={form.nome_fantasia || ""} onChange={handleChange} />
         <FormInput label="CNPJ" name="cnpj" value={mascaraCNPJ(form.cnpj || "")} onChange={handleChange} required placeholder="XX.XXX.XXX/XXXX-XX" error={erros.cnpj} hint="Formatado automaticamente" />
         <FormInput label="Telefone" name="telefone" value={mascaraTelefone(form.telefone || "")} onChange={handleChange} placeholder="(21) 99999-9999" error={erros.telefone} hint="Formatado automaticamente" />
         <FormInput label="Email" name="email" type="email" value={form.email || ""} onChange={handleChange} />
 
         <div className="cep-row">
           <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">CEP <span style={{ fontSize:"0.72rem", color:"var(--text-muted)" }}>(preenche cidade e UF)</span></label>
+            <label className="form-label">CEP <span className="form-label-note">(preenche cidade e UF)</span></label>
             <input type="text" value={cep} onChange={handleCEP} placeholder="XXXXX-XXX" className="form-input" maxLength={9} />
             {erroCEP && <span className="form-field-error">{erroCEP}</span>}
           </div>
           <button type="button" className="btn-buscar-cep" onClick={() => buscarCEP(cep)} disabled={buscandoCEP || limparMascara(cep).length !== 8}>
-            {buscandoCEP ? "Buscando…" : "🔍 Buscar"}
+            {buscandoCEP ? "Buscando…" : "Buscar"}
           </button>
         </div>
 
         <FormInput label="Cidade" name="cidade" value={form.cidade || ""} onChange={handleChange} />
         <FormInput label="UF" name="uf" value={form.uf || ""} onChange={handleChange} />
-        <FormInput label="Prazo de Entrega (dias)" name="prazo_de_entraga" type="number" value={form.prazo_de_entraga || ""} onChange={handleChange} />
+        <FormInput label="Prazo de entrega (dias)" name="prazo_de_entraga" type="number" value={form.prazo_de_entraga || ""} onChange={handleChange} />
         <FormSelect label="Avaliação" name="avaliacao" value={String(form.avaliacao)} onChange={handleChange}
           options={[
             { value: "1", label: "1 - Ruim" }, { value: "2", label: "2 - Regular" },
@@ -112,7 +112,7 @@ function EditarFornecedor() {
         />
 
         <div className="form-actions">
-          <BotaoSalvar texto={salvando ? "Salvando…" : "Salvar Alterações"} />
+          <BotaoSalvar texto={salvando ? "Salvando…" : "Salvar alterações"} />
           <button type="button" className="btn btn-back" onClick={() => navigate("/fornecedores")}>← Voltar</button>
         </div>
       </form>

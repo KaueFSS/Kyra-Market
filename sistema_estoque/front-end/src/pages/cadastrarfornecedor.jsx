@@ -86,17 +86,17 @@ function CadastrarFornecedor() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Fornecedor</h1>
+      <h1 className="page-title">Cadastrar fornecedor</h1>
       <p className="page-subtitle">
         Formulário para cadastrar um novo fornecedor.&nbsp;
-        <kbd style={{ fontSize:"0.72rem", background:"rgba(255,255,255,0.07)", border:"1px solid var(--border)", borderRadius:4, padding:"1px 5px" }}>Ctrl+Enter</kbd> para salvar
+        <kbd>Ctrl+Enter</kbd> para salvar
       </p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={handleSubmit} className="form-container">
-        <FormInput label="Razão Social" name="razao_social" value={fornecedor.razao_social} onChange={handleChange} required error={erros.razao_social} />
-        <FormInput label="Nome Fantasia" name="nome_fantasia" value={fornecedor.nome_fantasia} onChange={handleChange} />
+        <FormInput label="Razão social" name="razao_social" value={fornecedor.razao_social} onChange={handleChange} required error={erros.razao_social} />
+        <FormInput label="Nome fantasia" name="nome_fantasia" value={fornecedor.nome_fantasia} onChange={handleChange} />
         <FormInput label="CNPJ" name="cnpj" value={fornecedor.cnpj} onChange={handleChange} required placeholder="XX.XXX.XXX/XXXX-XX" error={erros.cnpj} hint="Formatado automaticamente" />
         <FormInput label="Telefone" name="telefone" value={fornecedor.telefone} onChange={handleChange} placeholder="(21) 99999-9999" error={erros.telefone} hint="Formatado automaticamente" />
         <FormInput label="Email" name="email" type="email" value={fornecedor.email} onChange={handleChange} />
@@ -104,7 +104,7 @@ function CadastrarFornecedor() {
         {/* CEP com autocomplete */}
         <div className="cep-row">
           <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">CEP <span style={{ fontSize:"0.72rem", color:"var(--text-muted)" }}>(preenche cidade e UF)</span></label>
+            <label className="form-label">CEP <span className="form-label-note">(preenche cidade e UF)</span></label>
             <input
               type="text"
               value={cep}
@@ -116,13 +116,13 @@ function CadastrarFornecedor() {
             {erroCEP && <span className="form-field-error">{erroCEP}</span>}
           </div>
           <button type="button" className="btn-buscar-cep" onClick={() => buscarCEP(cep)} disabled={buscandoCEP || limparMascara(cep).length !== 8}>
-            {buscandoCEP ? "Buscando…" : "🔍 Buscar"}
+            {buscandoCEP ? "Buscando…" : "Buscar"}
           </button>
         </div>
 
         <FormInput label="Cidade" name="cidade" value={fornecedor.cidade} onChange={handleChange} />
         <FormInput label="UF" name="uf" value={fornecedor.uf} onChange={handleChange} />
-        <FormInput label="Prazo de Entrega (dias)" name="prazo_de_entraga" type="number" value={fornecedor.prazo_de_entraga} onChange={handleChange} />
+        <FormInput label="Prazo de entrega (dias)" name="prazo_de_entraga" type="number" value={fornecedor.prazo_de_entraga} onChange={handleChange} />
         <FormSelect label="Avaliação" name="avaliacao" value={fornecedor.avaliacao} onChange={handleChange}
           options={[
             { value: "1", label: "1 - Ruim" }, { value: "2", label: "2 - Regular" },
@@ -132,7 +132,7 @@ function CadastrarFornecedor() {
         />
 
         <div className="form-actions">
-          <BotaoSalvar texto={salvando ? "Salvando…" : "Cadastrar Fornecedor"} />
+          <BotaoSalvar texto={salvando ? "Salvando…" : "Cadastrar fornecedor"} />
           <button type="button" className="btn btn-back" onClick={() => navigate("/fornecedores")}>← Voltar</button>
         </div>
       </form>

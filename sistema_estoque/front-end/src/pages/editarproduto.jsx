@@ -43,7 +43,7 @@ function EditarProduto() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Produto</h1>
+      <h1 className="page-title">Editar produto</h1>
       <p className="page-subtitle">ID: {id}</p>
 
       <MensagemErro mensagem={erro} />
@@ -57,12 +57,12 @@ function EditarProduto() {
         <FormInput label="Categoria" name="categoria" value={form.categoria || ""} onChange={handleChange} />
         <FormInput label="Subcategoria" name="subcategoria" value={form.subcategoria || ""} onChange={handleChange} />
         <FormInput label="Unidade" name="unidade" value={form.unidade || ""} onChange={handleChange} />
-        <FormInput label="Código de Barras" name="codigo_barras" value={form.codigo_barras || ""} onChange={handleChange} />
-        <FormInput label="Preço de Venda (R$)" name="preco" type="number" step="0.01" value={form.preco} onChange={handleChange} required />
-        <FormInput label="Preço de Custo (R$)" name="preco_custo" type="number" step="0.01" value={form.preco_custo} onChange={handleChange} required />
+        <FormInput label="Código de barras" name="codigo_barras" value={form.codigo_barras || ""} onChange={handleChange} />
+        <FormInput label="Preço de venda (R$)" name="preco" type="number" step="0.01" value={form.preco} onChange={handleChange} required />
+        <FormInput label="Preço de custo (R$)" name="preco_custo" type="number" step="0.01" value={form.preco_custo} onChange={handleChange} required />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/produtos")}>← Voltar</button>
         </div>
       </form>

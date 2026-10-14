@@ -43,11 +43,11 @@ function EditarItemCompra() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Item de Compra</h1>
+      <h1 className="page-title">Editar item de compra</h1>
       <p className="page-subtitle">
-        Compra: <strong style={{ color: "var(--text-primary)" }}>{form.compra}</strong>
+        Compra: <strong>{form.compra}</strong>
         {" | "}
-        Produto: <strong style={{ color: "var(--text-primary)" }}>{form.produto_nome || form.produto}</strong>
+        Produto: <strong>{form.produto_nome || form.produto}</strong>
       </p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -55,17 +55,17 @@ function EditarItemCompra() {
 
       <form onSubmit={handleSubmit} className="form-container">
         <FormInput label="Quantidade" name="quantidade" type="number" value={form.quantidade} onChange={handleChange} required />
-        <FormInput label="Valor Unitário (R$)" name="valor_unitario" type="number" step="0.01" value={form.valor_unitario} onChange={handleChange} required />
+        <FormInput label="Valor unitário (R$)" name="valor_unitario" type="number" step="0.01" value={form.valor_unitario} onChange={handleChange} required />
 
         <div className="form-group">
           <label className="form-label">Total calculado</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--accent-green)", fontWeight: 600, maxWidth: 400 }}>
+          <div className="form-readonly form-readonly-strong">
             {formatarMoeda(total)}
           </div>
         </div>
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/itens-compra")}>← Voltar</button>
         </div>
       </form>

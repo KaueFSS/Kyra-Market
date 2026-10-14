@@ -5,6 +5,7 @@ import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Despesas() {
@@ -166,10 +167,10 @@ function Despesas() {
 
   const totalFiltrado = despesasFiltradas.reduce((acc, d) => acc + Number(d.valor || 0), 0);
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -180,11 +181,11 @@ function Despesas() {
     <div className="page-container">
       <div className="page-header-row">
         <h1 className="page-title">Despesas</h1>
-        <Link to="/despesas/novo" className="btn-add">+ Nova Despesa</Link>
+        <Link to="/despesas/novo" className="btn-add"><IconPlus width={16} height={16} />Nova despesa</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && despesas.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhuma despesa encontrada para "${termoBusca}".` : "Nenhuma despesa encontrada."}
@@ -193,14 +194,13 @@ function Despesas() {
 
       {(despesas.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar despesa"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite a descrição, data, categoria, valor, funcionário..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar despesa"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite a descrição, data, categoria, valor, funcionário..."
+            />
             <div className="filter-item">
               <span className="filter-label">Categoria</span>
               <select className="filter-select" value={filtroCategoria} onChange={(e) => { setFiltroCategoria(e.target.value); setSelecionados(new Set()); }}>
@@ -217,11 +217,11 @@ function Despesas() {
               </select>
             </div>
             {(filtroCategoria || filtroRecorrente) && (
-              <button className="filter-reset" onClick={() => { setFiltroCategoria(""); setFiltroRecorrente(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroCategoria(""); setFiltroRecorrente(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <div className="totalizador" style={{ marginLeft: "auto", padding: "6px 14px", marginBottom: 0 }}>
+            <div className="filter-count">
               <span><strong>{despesasFiltradas.length}</strong> despesa{despesasFiltradas.length !== 1 ? "s" : ""}</span>
-              <span>Total: <span className="totalizador-valor" style={{ color: "var(--accent-red)" }}>{formatarMoeda(totalFiltrado)}</span></span>
+              <span>Total: <span className="totalizador-valor">{formatarMoeda(totalFiltrado)}</span></span>
             </div>
           </div>
 
@@ -229,7 +229,7 @@ function Despesas() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionadas"}
+                {excluindo ? "Excluindo..." : "Excluir selecionadas"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -245,7 +245,7 @@ function Despesas() {
                   <Th col="data" label="Data" />
                   <Th col="categoria" label="Categoria" />
                   <Th col="descricao" label="Descrição" />
-                  <Th col="valor" label="Valor" />
+                  <Th col="valor" label="Valor" num />
                   <Th col="funcionario_nome" label="Funcionário" />
                   <Th col="recorrente" label="Recorrente" />
                   <th>Ações</th>
@@ -259,12 +259,12 @@ function Despesas() {
                       <td className="col-check">
                         <input type="checkbox" checked={sel} onChange={() => toggleSelecionado(d.id_despesa)} />
                       </td>
-                      <td>{formatarData(d.data)}</td>
+                      <td className="cell-nowrap">{formatarData(d.data)}</td>
                       <td>
                         <span className="badge badge-orange">{d.categoria}</span>
                       </td>
                       <td>{d.descricao || "—"}</td>
-                      <td style={{ fontWeight: 600, color: "var(--accent-red)" }}>{formatarMoeda(d.valor)}</td>
+                      <td className="cell-num cell-strong">{formatarMoeda(d.valor)}</td>
                       <td>{d.funcionario_nome || d.funcionario}</td>
                       <td>
                         <span className={`badge ${d.recorrente ? "badge-blue" : "badge-gray"}`}>
@@ -287,12 +287,12 @@ function Despesas() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

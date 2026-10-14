@@ -5,6 +5,7 @@ import { cachedGet, isCached, getSync, parseListResponse, invalidateCache } from
 import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Compras() {
@@ -176,10 +177,10 @@ function Compras() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active
           ? <span>{sortDir === "asc" ? "↑" : "↓"}</span>
@@ -192,11 +193,11 @@ function Compras() {
     <div className="page-container">
       <div className="page-header-row">
         <h1 className="page-title">Compras</h1>
-        <Link to="/compras/novo" className="btn-add">+ Nova Compra</Link>
+        <Link to="/compras/novo" className="btn-add"><IconPlus width={16} height={16} />Nova compra</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && compras.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhuma compra encontrada para "${termoBusca}".` : "Nenhuma compra encontrada."}
@@ -205,14 +206,13 @@ function Compras() {
 
       {(compras.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar compra"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite o nome, fornecedor, funcionário, data, valor..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar compra"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite o nome, fornecedor, funcionário, data, valor..."
+            />
             <div className="filter-item">
               <span className="filter-label">Status de entrega</span>
               <select className="filter-select" value={filtroEntregue} onChange={(e) => { setFiltroEntregue(e.target.value); setSelecionados(new Set()); }}>
@@ -222,7 +222,7 @@ function Compras() {
               </select>
             </div>
             {filtroEntregue && (
-              <button className="filter-reset" onClick={() => { setFiltroEntregue(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroEntregue(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
           </div>
 
@@ -230,7 +230,7 @@ function Compras() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionada{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionadas"}
+                {excluindo ? "Excluindo..." : "Excluir selecionadas"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -248,7 +248,7 @@ function Compras() {
                   <Th col="funcionario_nome" label="Funcionário" />
                   <Th col="data_compra" label="Data" />
                   <Th col="entregue" label="Entrega" />
-                  <Th col="valor_total" label="Valor Total" />
+                  <Th col="valor_total" label="Valor total" num />
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -268,13 +268,13 @@ function Compras() {
                       </td>
                       <td>{c.fornecedor_nome || c.fornecedor}</td>
                       <td>{c.funcionario_nome || c.funcionario}</td>
-                      <td>{formatarData(c.data_compra)}</td>
+                      <td className="cell-nowrap">{formatarData(c.data_compra)}</td>
                       <td>
                         <span className={`badge ${c.entregue ? "badge-green" : "badge-orange"}`}>
-                          {c.entregue ? "✓ Entregue" : "Pendente"}
+                          {c.entregue ? "Entregue" : "Pendente"}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600, color: "var(--accent-green)" }}>{formatarMoeda(c.valor_total)}</td>
+                      <td className="cell-num cell-strong">{formatarMoeda(c.valor_total)}</td>
                       <td>
                         <div className="table-actions">
                           <Link to={`/compras/${c.id_compra}`}>Detalhes</Link>
@@ -297,12 +297,12 @@ function Compras() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

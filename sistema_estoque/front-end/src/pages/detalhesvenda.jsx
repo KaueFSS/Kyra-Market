@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../services/api";
-import { formatarMoeda, formatarFormaPagamento } from "../utils/formatadores";
+import { formatarMoeda, formatarFormaPagamento, formatarData } from "../utils/formatadores";
 
 function DetalhesVenda() {
   const { id } = useParams();
@@ -44,67 +44,67 @@ function DetalhesVenda() {
 
   return (
     <div className="page-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+      <div className="page-header-row">
         <div>
-          <h1 className="page-title" style={{ marginBottom: 4 }}>Detalhes da Venda</h1>
-          <p className="page-subtitle" style={{ marginBottom: 0 }}>Venda {venda.id_venda}{venda.nome ? ` — ${venda.nome}` : ""}</p>
+          <h1 className="page-title">Detalhes da venda</h1>
+          <p className="page-subtitle">Venda {venda.id_venda}{venda.nome ? ` — ${venda.nome}` : ""}</p>
         </div>
         <Link to="/vendas" className="btn btn-back">← Voltar</Link>
       </div>
 
-      <div className="card" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 20, marginBottom: 24 }}>
+      <div className="card detail-grid">
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Data</p>
-          <p style={{ fontWeight: 600 }}>{venda.data_venda}</p>
+          <p className="detail-label">Data</p>
+          <p className="detail-value">{formatarData(venda.data_venda)}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Hora</p>
-          <p style={{ fontWeight: 600 }}>{venda.hora || "—"}</p>
+          <p className="detail-label">Hora</p>
+          <p className="detail-value">{venda.hora ? venda.hora.slice(0, 5) : "—"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Forma de Pagamento</p>
-          <span className={`badge ${pagto.cls}`}>{pagto.icon} {pagto.label}</span>
+          <p className="detail-label">Forma de pagamento</p>
+          <span className={`badge ${pagto.cls}`}>{pagto.label}</span>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Funcionário</p>
-          <p style={{ fontWeight: 600 }}>{venda.funcionario_nome || venda.funcionario || "—"}</p>
+          <p className="detail-label">Funcionário</p>
+          <p className="detail-value">{venda.funcionario_nome || venda.funcionario || "—"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Cliente</p>
-          <p style={{ fontWeight: 600 }}>{venda.cliente_nome || venda.cliente || "Não informado"}</p>
+          <p className="detail-label">Cliente</p>
+          <p className="detail-value">{venda.cliente_nome || venda.cliente || "Não informado"}</p>
         </div>
         <div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: 4 }}>Total</p>
-          <p style={{ fontWeight: 700, fontSize: "1.2rem", color: "var(--accent-green)" }}>{formatarMoeda(venda.total)}</p>
+          <p className="detail-label">Total</p>
+          <p className="detail-value detail-value-lg">{formatarMoeda(venda.total)}</p>
         </div>
       </div>
 
-      <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
-        Produtos da Venda
+      <h2 className="section-heading">
+        Produtos da venda
       </h2>
 
       {itens.length === 0 ? (
-        <p style={{ color: "var(--text-secondary)" }}>Nenhum item vinculado a esta venda.</p>
+        <p className="empty-state">Nenhum item vinculado a esta venda.</p>
       ) : (
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
                 <th>Produto</th>
-                <th>Quantidade</th>
-                <th>Preço Unit.</th>
-                <th>Desconto</th>
-                <th>Subtotal</th>
+                <th className="cell-right">Quantidade</th>
+                <th className="cell-right">Preço unit.</th>
+                <th className="cell-right">Desconto</th>
+                <th className="cell-right">Subtotal</th>
               </tr>
             </thead>
             <tbody>
               {itens.map((item) => (
                 <tr key={item.id_item_venda}>
                   <td>{item.produto_nome || item.produto}</td>
-                  <td>{item.quantidade_vendida}</td>
-                  <td>{formatarMoeda(item.preco_unitario)}</td>
-                  <td>{formatarMoeda(item.desconto_aplicado)}</td>
-                  <td style={{ color: "var(--accent-green)", fontWeight: 600 }}>{formatarMoeda(item.subtotal)}</td>
+                  <td className="cell-num">{item.quantidade_vendida}</td>
+                  <td className="cell-num">{formatarMoeda(item.preco_unitario)}</td>
+                  <td className="cell-num">{formatarMoeda(item.desconto_aplicado)}</td>
+                  <td className="cell-num cell-strong">{formatarMoeda(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>

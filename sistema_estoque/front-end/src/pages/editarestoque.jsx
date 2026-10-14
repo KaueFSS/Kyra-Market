@@ -46,25 +46,25 @@ function EditarEstoque() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Estoque</h1>
+      <h1 className="page-title">Editar estoque</h1>
       <p className="page-subtitle">
-        Produto: <strong style={{ color: "var(--text-primary)" }}>{form.produto_nome || form.produto}</strong>
+        Produto: <strong>{form.produto_nome || form.produto}</strong>
         {" — "}
         <span className={`badge ${baixo ? "badge-red" : "badge-green"}`}>
-          {baixo ? "⚠ Abaixo do mínimo" : "✓ OK"}
+          {baixo ? "Abaixo do mínimo" : "Normal"}
         </span>
       </p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
-        <FormInput label="Quantidade Atual" name="quantidade_atual" type="number" value={form.quantidade_atual} onChange={handleChange} required />
-        <FormInput label="Quantidade Mínima" name="quantidade_minima" type="number" value={form.quantidade_minima} onChange={handleChange} required />
-        <FormInput label="Última Entrada" name="dt_ultima_entrada" type="date" value={form.dt_ultima_entrada || ""} onChange={handleChange} />
-        <FormInput label="Última Saída" name="dt_ultima_saida" type="date" value={form.dt_ultima_saida || ""} onChange={handleChange} />
+        <FormInput label="Quantidade atual" name="quantidade_atual" type="number" value={form.quantidade_atual} onChange={handleChange} required />
+        <FormInput label="Quantidade mínima" name="quantidade_minima" type="number" value={form.quantidade_minima} onChange={handleChange} required />
+        <FormInput label="Última entrada" name="dt_ultima_entrada" type="date" value={form.dt_ultima_entrada || ""} onChange={handleChange} />
+        <FormInput label="Última saída" name="dt_ultima_saida" type="date" value={form.dt_ultima_saida || ""} onChange={handleChange} />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/estoques")}>← Voltar</button>
         </div>
       </form>

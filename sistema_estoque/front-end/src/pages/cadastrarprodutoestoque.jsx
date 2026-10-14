@@ -83,7 +83,7 @@ function CadastrarProdutoEstoque() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Produto</h1>
+      <h1 className="page-title">Cadastrar produto</h1>
       <p className="page-subtitle">Preencha os dados do produto e do estoque inicial.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -91,26 +91,26 @@ function CadastrarProdutoEstoque() {
 
       <form onSubmit={salvarProdutoEstoque} className="form-container">
         <div className="form-section">
-          <h3 className="form-section-title">Dados do Produto</h3>
-          <FormInput label="Nome do Produto" name="nome" value={produto.nome} onChange={alterarCampoProduto} required placeholder="Ex: Pepsi Twist 2L" />
+          <h3 className="form-section-title">Dados do produto</h3>
+          <FormInput label="Nome do produto" name="nome" value={produto.nome} onChange={alterarCampoProduto} required placeholder="Ex: Pepsi Twist 2L" />
           <FormSelectSearch label="Fornecedor" name="fornecedor" value={produto.fornecedor} onChange={alterarCampoProduto} options={opcoesFornecedores} placeholder="Selecione um fornecedor..." isClearable />
           <FormInput label="Marca" name="marca" value={produto.marca} onChange={alterarCampoProduto} placeholder="Ex: Nestlé, Unilever" />
           <FormInput label="Categoria" name="categoria" value={produto.categoria} onChange={alterarCampoProduto} placeholder="Ex: Alimentos" />
           <FormInput label="Subcategoria" name="subcategoria" value={produto.subcategoria} onChange={alterarCampoProduto} placeholder="Ex: Refrigerantes" />
           <FormInput label="Unidade" name="unidade" value={produto.unidade} onChange={alterarCampoProduto} placeholder="Ex: un, kg, cx" />
-          <FormInput label="Código de Barras" name="codigo_barras" value={produto.codigo_barras} onChange={alterarCampoProduto} />
-          <FormInput label="Preço de Venda (R$)" name="preco" type="number" step="0.01" value={produto.preco} onChange={alterarCampoProduto} required placeholder="Ex: 12.50" />
-          <FormInput label="Preço de Custo (R$)" name="preco_custo" type="number" step="0.01" value={produto.preco_custo} onChange={alterarCampoProduto} required placeholder="Ex: 6.50" />
+          <FormInput label="Código de barras" name="codigo_barras" value={produto.codigo_barras} onChange={alterarCampoProduto} />
+          <FormInput label="Preço de venda (R$)" name="preco" type="number" step="0.01" value={produto.preco} onChange={alterarCampoProduto} required placeholder="Ex: 12.50" />
+          <FormInput label="Preço de custo (R$)" name="preco_custo" type="number" step="0.01" value={produto.preco_custo} onChange={alterarCampoProduto} required placeholder="Ex: 6.50" />
         </div>
 
         <div className="form-section">
-          <h3 className="form-section-title">Estoque Inicial</h3>
-          <FormInput label="Quantidade Atual" name="quantidade_atual" type="number" value={estoque.quantidade_atual} onChange={alterarCampoEstoque} required />
-          <FormInput label="Quantidade Mínima" name="quantidade_minima" type="number" value={estoque.quantidade_minima} onChange={alterarCampoEstoque} required />
+          <h3 className="form-section-title">Estoque inicial</h3>
+          <FormInput label="Quantidade atual" name="quantidade_atual" type="number" value={estoque.quantidade_atual} onChange={alterarCampoEstoque} required />
+          <FormInput label="Quantidade mínima" name="quantidade_minima" type="number" value={estoque.quantidade_minima} onChange={alterarCampoEstoque} required />
         </div>
 
         <div className="form-actions">
-          <BotaoSalvar texto="Cadastrar Produto" />
+          <BotaoSalvar texto="Cadastrar produto" />
         </div>
       </form>
     </div>

@@ -178,7 +178,7 @@ function CadastrarVendas() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Venda</h1>
+      <h1 className="page-title">Cadastrar venda</h1>
       <p className="page-subtitle">Preencha os dados da venda e adicione um ou mais itens.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -186,10 +186,10 @@ function CadastrarVendas() {
 
       <form onSubmit={salvarVendas} className="form-container">
         <div className="form-section">
-          <h3 className="form-section-title">Dados da Venda</h3>
+          <h3 className="form-section-title">Dados da venda</h3>
 
           <FormInput
-            label="Nome da Venda"
+            label="Nome da venda"
             name="nome"
             value={vendas.nome}
             onChange={alterarCampoVenda}
@@ -197,7 +197,7 @@ function CadastrarVendas() {
           />
 
           <FormInput
-            label="Data da Venda"
+            label="Data da venda"
             name="data_venda"
             type="date"
             value={vendas.data_venda}
@@ -215,7 +215,7 @@ function CadastrarVendas() {
           />
 
           <FormSelect
-            label="Forma de Pagamento"
+            label="Forma de pagamento"
             name="forma_pagamento"
             value={vendas.forma_pagamento}
             onChange={alterarCampoVenda}
@@ -230,7 +230,7 @@ function CadastrarVendas() {
           />
 
           <FormSelectSearch
-            label="Funcionário Responsável"
+            label="Funcionário responsável"
             name="funcionario"
             value={vendas.funcionario}
             onChange={alterarCampoVenda}
@@ -250,12 +250,12 @@ function CadastrarVendas() {
           />
 
           <div style={{ marginTop: 8 }}>
-            <BotaoNavegacao urlPagina="/clientes/novo" texto="+ Cadastrar novo cliente" />
+            <BotaoNavegacao urlPagina="/clientes/novo" texto="Cadastrar novo cliente" />
           </div>
         </div>
 
         <div className="form-section">
-          <h3 className="form-section-title">Adicionar Item à Venda</h3>
+          <h3 className="form-section-title">Adicionar item à venda</h3>
 
           <FormSelectSearch
             label="Produto"
@@ -267,7 +267,7 @@ function CadastrarVendas() {
           />
 
           <FormInput
-            label="Quantidade Vendida"
+            label="Quantidade vendida"
             name="quantidade_vendida"
             type="number"
             value={itemAtual.quantidade_vendida}
@@ -285,16 +285,16 @@ function CadastrarVendas() {
             placeholder="Ex: 0.00"
           />
 
-          <div className="form-actions" style={{ marginTop: 12 }}>
-            <button type="button" className="btn btn-primary" onClick={adicionarItem}>
-              + Adicionar Item
+          <div className="form-actions form-actions-inline">
+            <button type="button" className="btn btn-secondary" onClick={adicionarItem}>
+              Adicionar item
             </button>
           </div>
         </div>
 
         {itens.length > 0 && (
           <div className="form-section">
-            <h3 className="form-section-title">Itens da Venda</h3>
+            <h3 className="form-section-title">Itens da venda</h3>
             {itens.map((item, index) => {
               const produtoSelecionado = produtos.find((p) => p.id_produto === item.produto);
               return (
@@ -313,19 +313,17 @@ function CadastrarVendas() {
                   </div>
                   <p>
                     {item.quantidade_vendida} un &nbsp;·&nbsp; Desconto: {formatarMoeda(item.desconto)} &nbsp;·&nbsp;
-                    Subtotal: <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(item.subtotal)}</strong>
+                    Subtotal: <strong>{formatarMoeda(item.subtotal)}</strong>
                   </p>
                 </div>
               );
             })}
-            <p style={{ color: "var(--accent-green)", fontWeight: 700, fontSize: "1.1rem", marginTop: 8 }}>
-              Total: {formatarMoeda(totalVenda)}
-            </p>
+            <div className="form-total"><span>Total</span><strong>{formatarMoeda(totalVenda)}</strong></div>
           </div>
         )}
 
         <div className="form-actions">
-          <BotaoSalvar texto="Cadastrar Venda" />
+          <BotaoSalvar texto="Cadastrar venda" />
         </div>
       </form>
     </div>

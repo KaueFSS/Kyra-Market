@@ -6,6 +6,7 @@ import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 
 function Fornecedores() {
   // barra de pesquisa (busca server-side via ?search=)
@@ -163,10 +164,10 @@ function Fornecedores() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -177,11 +178,11 @@ function Fornecedores() {
     <div className="page-container">
       <div className="page-header-row">
         <h1 className="page-title">Fornecedores</h1>
-        <Link to="/fornecedores/novo" className="btn-add">+ Novo Fornecedor</Link>
+        <Link to="/fornecedores/novo" className="btn-add"><IconPlus width={16} height={16} />Novo fornecedor</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && fornecedores.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhum fornecedor encontrado para "${termoBusca}".` : "Nenhum fornecedor encontrado."}
@@ -190,14 +191,13 @@ function Fornecedores() {
 
       {(fornecedores.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar fornecedor"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite a razão social, nome, cnpj, cidade, uf, telefone..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar fornecedor"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite a razão social, nome, cnpj, cidade, uf, telefone..."
+            />
             <div className="filter-item">
               <span className="filter-label">Estado (UF)</span>
               <select className="filter-select" value={filtroUF} onChange={(e) => { setFiltroUF(e.target.value); setSelecionados(new Set()); }}>
@@ -206,9 +206,9 @@ function Fornecedores() {
               </select>
             </div>
             {filtroUF && (
-              <button className="filter-reset" onClick={() => { setFiltroUF(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroUF(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <span style={{ marginLeft: "auto", fontSize: "0.82rem", color: "var(--text-secondary)", alignSelf: "flex-end" }}>
+            <span className="filter-count">
               {fornecedoresFiltrados.length} fornecedor{fornecedoresFiltrados.length !== 1 ? "es" : ""}
             </span>
           </div>
@@ -217,7 +217,7 @@ function Fornecedores() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionado{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionados"}
+                {excluindo ? "Excluindo..." : "Excluir selecionados"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -231,8 +231,8 @@ function Fornecedores() {
                     <input type="checkbox" checked={selecionados.size === fornecedoresFiltrados.length && fornecedoresFiltrados.length > 0} onChange={toggleTodos} />
                   </th>
                   <Th col="id_fornecedor" label="ID" />
-                  <Th col="razao_social" label="Razão Social" />
-                  <Th col="nome_fantasia" label="Nome Fantasia" />
+                  <Th col="razao_social" label="Razão social" />
+                  <Th col="nome_fantasia" label="Nome fantasia" />
                   <Th col="cnpj" label="CNPJ" />
                   <Th col="cidade" label="Cidade" />
                   <Th col="uf" label="UF" />
@@ -257,12 +257,12 @@ function Fornecedores() {
                       </td>
                       <td>{f.razao_social}</td>
                       <td>{f.nome_fantasia || "—"}</td>
-                      <td>{f.cnpj}</td>
+                      <td className="cell-nowrap">{f.cnpj}</td>
                       <td>{f.cidade}</td>
                       <td>{f.uf}</td>
-                      <td>{f.telefone || "—"}</td>
+                      <td className="cell-nowrap">{f.telefone || "—"}</td>
                       <td>
-                        <span className="badge badge-blue">⭐ {f.avaliacao}</span>
+                        <span className="badge badge-blue">{f.avaliacao} / 5</span>
                       </td>
                       <td>
                         <div className="table-actions">
@@ -280,12 +280,12 @@ function Fornecedores() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>

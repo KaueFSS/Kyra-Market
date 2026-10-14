@@ -43,13 +43,13 @@ function EditarDespesa() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Editar Despesa</h1>
+      <h1 className="page-title">Editar despesa</h1>
       <p className="page-subtitle">ID: {id}</p>
 
       <MensagemErro mensagem={erro} />
 
       <form onSubmit={e => { e.preventDefault(); salvar(); }} className="form-container">
-        <FormSelect label="Funcionário Responsável" name="funcionario" value={form.funcionario} onChange={handleChange}
+        <FormSelect label="Funcionário responsável" name="funcionario" value={form.funcionario} onChange={handleChange}
           options={funcionarios.map((f) => ({ value: f.id_funcionario, label: `${f.nome} — ${f.cargo}` }))}
         />
         <FormInput label="Data" name="data" type="date" value={form.data} onChange={handleChange} required />
@@ -61,7 +61,7 @@ function EditarDespesa() {
         />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Salvar Alterações" />
+          <BotaoSalvar texto="Salvar alterações" />
           <button type="button" className="btn btn-back" onClick={() => navigate("/despesas")}>← Voltar</button>
         </div>
       </form>

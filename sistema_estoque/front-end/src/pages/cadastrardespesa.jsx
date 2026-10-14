@@ -57,7 +57,7 @@ function CadastrarDespesa() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Despesa</h1>
+      <h1 className="page-title">Cadastrar despesa</h1>
       <p className="page-subtitle">Formulário para cadastrar uma nova despesa.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -65,7 +65,7 @@ function CadastrarDespesa() {
 
       <form onSubmit={handleSubmit} className="form-container">
         <FormSelectSearch
-          label="Funcionário Responsável"
+          label="Funcionário responsável"
           name="funcionario"
           value={form.funcionario}
           onChange={handleChange}
@@ -73,7 +73,7 @@ function CadastrarDespesa() {
           placeholder="Selecione um funcionário..."
           required={true}
         />
-        <FormInput label="ID da Compra Vinculada (opcional)" name="compra" value={form.compra} onChange={handleChange} placeholder="Deixe em branco se não houver" />
+        <FormInput label="ID da compra vinculada (opcional)" name="compra" value={form.compra} onChange={handleChange} placeholder="Deixe em branco se não houver" />
         <FormInput label="Data" name="data" type="date" value={form.data} onChange={handleChange} required />
         <FormInput label="Categoria" name="categoria" value={form.categoria} onChange={handleChange} required placeholder="Ex: Aluguel, Luz, Água..." />
         <FormInput label="Descrição" name="descricao" value={form.descricao} onChange={handleChange} placeholder="Descrição adicional (opcional)" />
@@ -83,7 +83,7 @@ function CadastrarDespesa() {
         />
 
         <div className="form-actions">
-          <BotaoSalvar texto="Cadastrar Despesa" />
+          <BotaoSalvar texto="Cadastrar despesa" />
         </div>
       </form>
     </div>

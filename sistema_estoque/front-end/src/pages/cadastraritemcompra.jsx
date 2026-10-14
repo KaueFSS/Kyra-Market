@@ -55,7 +55,7 @@ function CadastrarItemCompra() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Item de Compra</h1>
+      <h1 className="page-title">Cadastrar item de compra</h1>
       <p className="page-subtitle">Formulário para adicionar produtos a uma compra.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -69,20 +69,20 @@ function CadastrarItemCompra() {
           options={produtos.map((p) => ({ value: p.id_produto, label: `${p.nome} — Custo: ${formatarMoeda(p.preco_custo)}` }))}
         />
         <FormInput label="Quantidade" name="quantidade" type="number" value={item.quantidade} onChange={handleChange} required />
-        <FormInput label="Valor Unitário (R$)" name="valor_unitario" type="number" step="0.01" value={item.valor_unitario} onChange={handleChange} required />
-        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: -8, marginBottom: 12 }}>
+        <FormInput label="Valor unitário (R$)" name="valor_unitario" type="number" step="0.01" value={item.valor_unitario} onChange={handleChange} required />
+        <p className="form-note">
           Preenchido automaticamente com o preço de custo. Pode ser alterado.
         </p>
 
         <div className="form-group">
           <label className="form-label">Subtotal calculado</label>
-          <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--accent-green)", fontWeight: 600, maxWidth: 400 }}>
+          <div className="form-readonly form-readonly-strong">
             {formatarMoeda(subtotal)}
           </div>
         </div>
 
         <div className="form-actions">
-          <BotaoSalvar texto="Cadastrar Item" />
+          <BotaoSalvar texto="Cadastrar item" />
         </div>
       </form>
     </div>

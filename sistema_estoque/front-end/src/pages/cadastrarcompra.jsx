@@ -129,7 +129,7 @@ function CadastrarCompra() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Cadastrar Compra</h1>
+      <h1 className="page-title">Cadastrar compra</h1>
       <p className="page-subtitle">Preencha os dados da compra e adicione itens.</p>
 
       <MensagemSucesso mensagem={mensagem} />
@@ -137,7 +137,7 @@ function CadastrarCompra() {
 
       <form onSubmit={handleSubmit} className="form-container">
         <div className="form-section">
-          <h3 className="form-section-title">Dados da Compra</h3>
+          <h3 className="form-section-title">Dados da compra</h3>
           <FormInput label="Nome" name="nome" value={compra.nome} onChange={handleChangeCompra} placeholder="Ex: Reposição de Laticínios - Maio" />
           <FormSelectSearch
             label="Fornecedor"
@@ -149,7 +149,7 @@ function CadastrarCompra() {
             required={true}
           />
           <FormSelectSearch
-            label="Funcionário Responsável"
+            label="Funcionário responsável"
             name="funcionario"
             value={compra.funcionario}
             onChange={handleChangeCompra}
@@ -157,15 +157,15 @@ function CadastrarCompra() {
             placeholder="Selecione um funcionário..."
             required={true}
           />
-          <FormInput label="Data da Compra" name="data_compra" type="date" value={compra.data_compra} onChange={handleChangeCompra} />
+          <FormInput label="Data da compra" name="data_compra" type="date" value={compra.data_compra} onChange={handleChangeCompra} />
           <FormSelect label="Status" name="status" value={compra.status} onChange={handleChangeCompra}
             options={[{ value: "Pendente", label: "Pendente" }, { value: "Entregue", label: "Entregue" }]}
           />
-          <FormInput label="Data de Entrega" name="data_entrega" type="date" value={compra.data_entrega} onChange={handleChangeCompra} />
+          <FormInput label="Data de entrega" name="data_entrega" type="date" value={compra.data_entrega} onChange={handleChangeCompra} />
         </div>
 
         <div className="form-section">
-          <h3 className="form-section-title">Adicionar Item</h3>
+          <h3 className="form-section-title">Adicionar item</h3>
           <FormSelectSearch
             label="Produto"
             name="produto"
@@ -177,13 +177,13 @@ function CadastrarCompra() {
           />
           <FormInput label="Quantidade" name="quantidade_comprada" type="number" value={itemAtual.quantidade_comprada} onChange={handleChangeItem} />
           <div className="form-group">
-            <label className="form-label">Preço de Custo Unitário (R$)</label>
-            <div style={{ padding: "9px 12px", background: "var(--bg-input)", borderRadius: "var(--radius-input)", border: "1px solid var(--border-input)", color: "var(--text-secondary)", maxWidth: 400 }}>
+            <label className="form-label">Preço de custo unitário (R$)</label>
+            <div className="form-readonly">
               {itemAtual.preco_unitario ? formatarMoeda(itemAtual.preco_unitario) : "Selecione um produto"}
             </div>
           </div>
-          <div className="form-actions" style={{ marginTop: 12 }}>
-            <button type="button" className="btn btn-primary" onClick={adicionarItem}>+ Adicionar Item</button>
+          <div className="form-actions form-actions-inline">
+            <button type="button" className="btn btn-secondary" onClick={adicionarItem}>Adicionar item</button>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ function CadastrarCompra() {
                       Remover
                     </button>
                   </div>
-                  <p>{item.quantidade_comprada} x {formatarMoeda(item.preco_unitario)} = <strong style={{ color: "var(--accent-green)" }}>{formatarMoeda(Number(item.quantidade_comprada) * Number(item.preco_unitario))}</strong></p>
+                  <p>{item.quantidade_comprada} x {formatarMoeda(item.preco_unitario)} = <strong>{formatarMoeda(Number(item.quantidade_comprada) * Number(item.preco_unitario))}</strong></p>
                 </div>
               );
             })}
@@ -217,7 +217,7 @@ function CadastrarCompra() {
         )}
 
         <div className="form-actions">
-          <BotaoSalvar texto="Cadastrar Compra" />
+          <BotaoSalvar texto="Cadastrar compra" />
         </div>
       </form>
     </div>

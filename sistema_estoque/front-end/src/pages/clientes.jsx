@@ -6,6 +6,7 @@ import { showToast } from "../utils/toast";
 import { confirmDialog } from "../utils/confirmDialog";
 import { excluirEmLote, mensagemFalhasExclusao } from "../utils/exclusao";
 import SearchBar from "../components/SearchBarPage";
+import { IconPlus } from "../components/Icons";
 import { formatarMoeda, formatarData } from "../utils/formatadores";
 
 function Clientes() {
@@ -163,10 +164,10 @@ function Clientes() {
     })
   );
 
-  function Th({ col, label }) {
+  function Th({ col, label, num }) {
     const active = sortCol === col;
     return (
-      <th className="th-sort" onClick={() => toggleSort(col)}>
+      <th className={`th-sort${num ? " cell-right" : ""}`} onClick={() => toggleSort(col)}>
         {label}{" "}
         {active ? <span>{sortDir === "asc" ? "↑" : "↓"}</span> : <span className="th-sort-icon">↕</span>}
       </th>
@@ -179,11 +180,11 @@ function Clientes() {
         <div>
           <h1 className="page-title">Clientes</h1>
         </div>
-        <Link to="/clientes/novo" className="btn-add">+ Novo Cliente</Link>
+        <Link to="/clientes/novo" className="btn-add"><IconPlus width={16} height={16} />Novo cliente</Link>
       </div>
 
       {carregando && <p className="loading-text">Carregando clientes...</p>}
-      {erro && <div className="alert-msg">⚠️ {erro}</div>}
+      {erro && <div className="alert-msg">{erro}</div>}
       {!carregando && !erro && clientes.length === 0 && (
         <p className="empty-state">
           {termoBusca ? `Nenhum cliente encontrado para "${termoBusca}".` : "Nenhum cliente encontrado."}
@@ -192,14 +193,13 @@ function Clientes() {
 
       {(clientes.length > 0 || termoBusca) && (
         <>
-          <SearchBar
-            label="Pesquisar cliente"
-            value={termoBusca}
-            onChange={(e) => setTermoBusca(e.target.value)}
-            placeholder="Digite o nome, telefone, bairro, data..."
-          />
-
           <div className="filter-bar">
+            <SearchBar
+              label="Pesquisar cliente"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Digite o nome, telefone, bairro, data..."
+            />
             <div className="filter-item">
               <span className="filter-label">Fiado</span>
               <select className="filter-select" value={filtroFiado} onChange={(e) => { setFiltroFiado(e.target.value); setSelecionados(new Set()); }}>
@@ -209,9 +209,9 @@ function Clientes() {
               </select>
             </div>
             {filtroFiado && (
-              <button className="filter-reset" onClick={() => { setFiltroFiado(""); setSelecionados(new Set()); }}>✕ Limpar</button>
+              <button className="filter-reset" onClick={() => { setFiltroFiado(""); setSelecionados(new Set()); }}>Limpar filtros</button>
             )}
-            <span style={{ marginLeft: "auto", fontSize: "0.82rem", color: "var(--text-secondary)", alignSelf: "flex-end" }}>
+            <span className="filter-count">
               {clientesFiltrados.length} cliente{clientesFiltrados.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -220,7 +220,7 @@ function Clientes() {
             <div className="bulk-bar">
               <span className="bulk-bar-count">{selecionados.size} selecionado{selecionados.size !== 1 ? "s" : ""}</span>
               <button className="bulk-bar-delete" onClick={excluirSelecionados} disabled={excluindo}>
-                {excluindo ? "Excluindo..." : "🗑 Excluir selecionados"}
+                {excluindo ? "Excluindo..." : "Excluir selecionados"}
               </button>
               <button className="bulk-bar-cancel" onClick={() => setSelecionados(new Set())}>Cancelar</button>
             </div>
@@ -239,9 +239,9 @@ function Clientes() {
                   <Th col="bairro" label="Bairro" />
                   <Th col="data_cadastro" label="Cadastro" />
                   <Th col="possui_fiado" label="Fiado" />
-                  <Th col="saldo_fiado" label="Saldo Fiado" />
-                  <Th col="total_valor" label="Total Compras" />
-                  <Th col="ultima_compra" label="Última Compra" />
+                  <Th col="saldo_fiado" label="Saldo fiado" num />
+                  <Th col="total_valor" label="Total compras" num />
+                  <Th col="ultima_compra" label="Última compra" />
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -260,19 +260,19 @@ function Clientes() {
                         </span>
                       </td>
                       <td>{c.nome}</td>
-                      <td>{c.telefone || "—"}</td>
-                      <td>{c.bairro || "—"}</td>
-                      <td>{formatarData(c.data_cadastro)}</td>
+                      <td className="cell-nowrap">{c.telefone || "—"}</td>
+                      <td className="cell-nowrap">{c.bairro || "—"}</td>
+                      <td className="cell-nowrap">{formatarData(c.data_cadastro)}</td>
                       <td>
                         <span className={`badge ${c.possui_fiado ? "badge-purple" : "badge-gray"}`}>
                           {c.possui_fiado ? "Sim" : "Não"}
                         </span>
                       </td>
-                      <td style={{ color: c.saldo_fiado > 0 ? "var(--accent-purple)" : "var(--text-secondary)" }}>
+                      <td className={`cell-num${c.saldo_fiado > 0 ? " cell-strong" : " cell-muted"}`}>
                         {formatarMoeda(c.saldo_fiado)}
                       </td>
-                      <td style={{ color: "var(--accent-green)" }}>{formatarMoeda(c.total_valor)}</td>
-                      <td>{formatarData(c.ultima_compra)}</td>
+                      <td className="cell-num">{formatarMoeda(c.total_valor)}</td>
+                      <td className="cell-nowrap">{formatarData(c.ultima_compra)}</td>
                       <td>
                         <div className="table-actions">
                           <Link to={`/clientes/${c.id_cliente}/editar`}>Editar</Link>
@@ -289,12 +289,12 @@ function Clientes() {
             <button className="pagination-btn" onClick={() => setPagina(pagina - 1)} disabled={!temAnterior}>← Anterior</button>
             <span className="pagination-info">Página {pagina}</span>
             <button className="pagination-btn" onClick={() => setPagina(pagina + 1)} disabled={!temProxima}>Próxima →</button>
+            {temProxima && (
+              <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
+                {carregandoMais ? "Carregando…" : "Carregar mais"}
+              </button>
+            )}
           </div>
-          {temProxima && (
-            <button className="btn-carregar-mais" onClick={carregarMais} disabled={carregandoMais}>
-              {carregandoMais ? "Carregando…" : "⬇ Carregar mais"}
-            </button>
-          )}
         </>
       )}
     </div>
