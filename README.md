@@ -110,3 +110,17 @@ sistema_estoque/
 **Auto-configuração do Metabase** — ao iniciar, o `INICIAR.py` aguarda o Metabase subir, autentica via API e corrige automaticamente o caminho do banco SQLite, resolvendo o problema de caminhos absolutos que mudam entre máquinas.
 
 **Aliases de forma de pagamento** — o importador de planilhas legadas aceita variações como "Espécie", "Credito", "PIX" (maiúsculo/minúsculo) e normaliza para os valores padrão do sistema, permitindo migrar os dados históricos do Geraldo sem retrabalho manual.
+
+## Equipe e histórico
+
+O sistema nasceu como projeto da equipe **IBMEC Jr**, entre 21/04 e 08/05, e hoje é mantido por [Kauê (@KaueFSS)](https://github.com/KaueFSS) como o **Kyra Market**, da família de ferramentas [Kyra](https://github.com/KaueFSS).
+
+Quem escreveu o código, com o número de commits:
+
+| Pessoa | GitHub | Commits |
+|---|---|---|
+| Micael Dali | [@Micdali](https://github.com/Micdali) | 34 |
+| Kauê | [@KaueFSS](https://github.com/KaueFSS) | 52 |
+| Bernardo Brandão | [@BernardoBrandao-dev](https://github.com/BernardoBrandao-dev) | 24 |
+| Rafael Correa | [@RafaelCorrea160407](https://github.com/RafaelCorrea160407) | 18 |
+| João | [@joao245br1](https://github.com/joao245br1) | 9 |
