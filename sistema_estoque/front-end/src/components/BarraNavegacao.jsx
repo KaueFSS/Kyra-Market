@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { asset, MODO_DEMO } from "../demo/modo";
+import { confirmDialog } from "../utils/confirmDialog";
 import { Link, NavLink } from "react-router-dom";
 import api from "../services/api";
 import { cachedGet, prefetch } from "../utils/apiCache";
@@ -53,6 +55,18 @@ function prefetchChunk(loader) {
   loader().catch(() => prefetched.delete(loader));
 }
 
+async function restaurarDemo() {
+  const ok = await confirmDialog({
+    title: "Restaurar os dados da demonstração?",
+    message: "Vendas, cadastros e alterações feitas aqui serão descartados e os dados de exemplo voltam ao estado inicial.",
+    confirmText: "Restaurar",
+    danger: true,
+  });
+  if (!ok) return;
+  if (import.meta.env.VITE_DEMO === "1") (await import("../demo/backend")).restaurarDemo();
+  window.location.reload();
+}
+
 function BarraNavegacao({ onOpenSearch }) {
   const [usuario, setUsuario] = useState(null);
   useEffect(() => {
@@ -64,7 +78,7 @@ function BarraNavegacao({ onOpenSearch }) {
   return (
     <aside className="sidebar">
       <Link to="/" className="sidebar-brand">
-        <img src="/kyra-market.svg" alt="" className="sidebar-brand-img" />
+        <img src={asset("kyra-market.svg")} alt="" className="sidebar-brand-img" />
         <span className="sidebar-brand-text">Kyra Market</span>
       </Link>
 
@@ -99,6 +113,14 @@ function BarraNavegacao({ onOpenSearch }) {
           </div>
         ))}
       </nav>
+
+      {MODO_DEMO && (
+        <div className="sidebar-demo">
+          <span className="sidebar-demo-title">Demonstração</span>
+          <span className="sidebar-demo-text">Pode testar à vontade: os dados ficam só neste navegador.</span>
+          <button type="button" className="sidebar-demo-reset" onClick={restaurarDemo}>Restaurar dados</button>
+        </div>
+      )}
 
       {usuario && (
         <div className="sidebar-user">

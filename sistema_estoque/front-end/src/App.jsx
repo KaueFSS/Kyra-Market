@@ -1,13 +1,18 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import { MODO_DEMO } from "./demo/modo";
+
+// No GitHub Pages não há servidor para reescrever rotas: a demo usa #/rota.
+const Router = MODO_DEMO ? HashRouter : BrowserRouter;
 
 // Página inicial: import normal (precisa ficar instantânea ao abrir)
 import Home from "./pages/home";
 
 // Demais páginas: lazy loading (cada uma vira um chunk separado).
 // Bundle inicial pequeno, navegação carrega só a página visitada.
-const Dashboard               = lazy(() => import("./pages/dashboard"));
+// Na demo não há Metabase: a tela de análises é calculada no navegador.
+const Dashboard               = lazy(() => (import.meta.env.VITE_DEMO === "1" ? import("./pages/analisesdemo") : import("./pages/dashboard")));
 const Vendas                  = lazy(() => import("./pages/vendas"));
 const DetalhesVenda           = lazy(() => import("./pages/detalhesvenda"));
 const Clientes                = lazy(() => import("./pages/clientes"));
@@ -17,7 +22,7 @@ const Fornecedores            = lazy(() => import("./pages/fornecedores"));
 const Funcionarios            = lazy(() => import("./pages/funcionarios"));
 const Compras                 = lazy(() => import("./pages/compras"));
 const DetalhesCompra          = lazy(() => import("./pages/detalhescompra"));
-const ItensCompra             = lazy(() => import("./pages/itensCompra"));
+const ItensCompra             = lazy(() => import("./pages/itenscompra"));
 const Despesas                = lazy(() => import("./pages/despesas"));
 const ItensVenda              = lazy(() => import("./pages/itensvenda"));
 const CadastrarCliente        = lazy(() => import("./pages/cadastrarcliente"));
@@ -50,7 +55,7 @@ function PageFallback() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Layout>
         <Suspense fallback={<PageFallback />}>
           <Routes>
@@ -90,7 +95,7 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
-    </BrowserRouter>
+    </Router>
   );
 }
 

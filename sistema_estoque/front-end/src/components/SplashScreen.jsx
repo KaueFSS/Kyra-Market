@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { asset } from "../demo/modo";
 
 const PARTICLES = Array.from({ length: 40 }, (_, i) => ({
   id: i,
@@ -63,7 +64,7 @@ function SplashScreen({ steps, fading }) {
           <div className="splash-ring splash-ring-3" />
           <div className="splash-logo-frame">
             <img
-              src="/kyra-market.svg"
+              src={asset("kyra-market.svg")}
               alt="Kyra Market"
               className="splash-logo-img"
             />

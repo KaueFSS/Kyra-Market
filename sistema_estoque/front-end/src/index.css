@@ -172,6 +172,25 @@ button { font-family: inherit; }
   background: #4cc38a;
 }
 
+.sidebar-demo {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-top: 12px; padding: 11px 12px;
+  border: 1px solid rgba(76,195,138,0.25);
+  background: rgba(76,195,138,0.08);
+  border-radius: 8px;
+}
+.sidebar-demo-title { font-size: 0.78rem; font-weight: 600; color: #7fd8ab; }
+.sidebar-demo-text { font-size: 0.76rem; line-height: 1.4; color: rgba(255,255,255,0.6); }
+.sidebar-demo-reset {
+  align-self: flex-start;
+  margin-top: 4px; padding: 0;
+  background: none; border: none;
+  color: #fff; font-size: 0.78rem; font-weight: 500; font-family: inherit;
+  text-decoration: underline; text-underline-offset: 2px;
+  cursor: pointer;
+}
+.sidebar-demo-reset:hover { color: #7fd8ab; }
+
 .sidebar-user {
   display: flex; align-items: center; gap: 10px;
   margin-top: 12px; padding: 12px 8px 4px;
@@ -969,6 +988,24 @@ textarea.form-input { height: auto; min-height: 84px; padding: 9px 11px; }
 @keyframes row-highlight-anim { 0% { background: rgba(31,122,77,0.14); } 100% { background: transparent; } }
 .row-highlight { animation: row-highlight-anim 2s ease forwards; }
 
+/* ───────── Análises da demonstração ───────── */
+.stats-grid.stats-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.analises-panel { margin-top: 12px; }
+.analises-bottom { margin-top: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.chart { padding: 18px 18px 12px; }
+.chart-svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.chart-grid { stroke: #eceff3; stroke-width: 0.15; vector-effect: non-scaling-stroke; }
+.chart-bar { fill: #b9dcc8; transition: fill 0.12s; }
+.chart-bar:hover { fill: var(--primary); }
+.chart-bar-hoje { fill: var(--primary); }
+.chart-eixo { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.hbar-list { list-style: none; margin: 0; padding: 6px 0; }
+.hbar-row { padding: 9px 18px; }
+.hbar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.hbar-label { font-size: 0.875rem; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar-value { font-size: 0.84rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hbar-pct { margin-left: 8px; font-weight: 400; color: var(--text-muted); }
+
 /* ───────── Telas menores ───────── */
 @media (max-width: 1200px) {
   .page-container { padding: 24px 24px 40px; }
@@ -977,6 +1014,9 @@ textarea.form-input { height: auto; min-height: 84px; padding: 9px 11px; }
   .stats-grid .stat-card:nth-child(n+4) { grid-column: span 3; }
   .quicknav-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .home-bottom { grid-template-columns: 1fr; }
+  .stats-grid.stats-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-grid.stats-grid-4 .stat-card { grid-column: auto; }
+  .analises-bottom { grid-template-columns: 1fr; }
 }
 @media (max-width: 1080px) {
   .sidebar { width: 64px; padding: 16px 10px 12px; align-items: center; }
@@ -986,7 +1026,8 @@ textarea.form-input { height: auto; min-height: 84px; padding: 9px 11px; }
   .sidebar-search-hint,
   .sidebar-group-title,
   .sidebar-link-label,
-  .sidebar-user-info { display: none; }
+  .sidebar-user-info,
+  .sidebar-demo { display: none; }
   .sidebar-search { width: 40px; padding: 0; justify-content: center; }
   .sidebar-nav { gap: 10px; align-items: center; }
   .sidebar-group { align-items: center; }
